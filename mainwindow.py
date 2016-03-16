@@ -15,7 +15,7 @@ matplotlib.use("Qt5Agg")
 
 from functools import partial
 
-from Engineering_libDataQuery import databaseManager
+from ics_sps_engineering_Lib_dataQuery import databaseManager
 import ConfigParser
 
 from mycalendar import Calendar
