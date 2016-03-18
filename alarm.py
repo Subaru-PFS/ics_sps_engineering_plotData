@@ -49,7 +49,7 @@ class alarmChecker(QWidget):
 
     def checkTimeout(self):
         for key, value in self.parent.device_dict.iteritems():
-            date = self.parent.db.getLastDate(key)
+            date, [id] = self.parent.db.getLastData(key, "id")
             if date not in [-1, -2, -3, -4]:
                 if date != self.last_date[key]:
                     self.last_time[key] = datetime.datetime.now()

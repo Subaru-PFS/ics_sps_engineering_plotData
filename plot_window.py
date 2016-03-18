@@ -59,8 +59,8 @@ class PlotWindow(QWidget):
                                                           label="%s_%s" % (dict["label_device"], curves["label"]),
                                                           type=curves["type"], ylabel=curves["ylabel"],
                                                           unit=curves["unit"],
-                                                          row=device,
-                                                          column=keys,
+                                                          tableName=device,
+                                                          keyword=keys,
                                                           combo=combo))
                     grid.addWidget(checkbox, i, 1)
                     grid.addWidget(combo, i, 0)
@@ -76,7 +76,7 @@ class PlotWindow(QWidget):
                                                                 ylabel="d%s_dt (%s/min)" % (
                                                                     curves["type"].capitalize(), curves["unit"]),
                                                                 unit=curves["unit"],
-                                                                row=device, column=keys,
+                                                                tableName=device, keyword=keys,
                                                                 combo=combo_deriv, spinbox=integ_time))
                     grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
                     grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)

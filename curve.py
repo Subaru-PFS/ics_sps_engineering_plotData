@@ -5,7 +5,7 @@ from PyQt5.QtCore import QTimer
 
 
 class Curve(Line2D):
-    def __init__(self, parent, graph, label, type, ylabel, unit, row, column, combo):
+    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo):
         super(Curve, self).__init__([], [], label=label)
         self.parent = parent
         self.graph = graph
@@ -14,8 +14,8 @@ class Curve(Line2D):
         self.type = type
         self.ylabel = ylabel
         self.unit = unit
-        self.row = row
-        self.column = column
+        self.tableName = tableName
+        self.keyword = keyword
         self.combo = combo
         self.last_id = 0
         self.firstCall = True
@@ -28,7 +28,7 @@ class Curve(Line2D):
 
     def getFirstId(self):
         date_num = self.graph.numDate
-        last_id = self.parent.parent.db.getrowrelative2Date(self.row, 'id', date_num)
+        last_id = self.parent.parent.db.getrowrelative2Date(self.tableName, 'id', date_num)
         if last_id not in [-1, -2, -3, -4]:
             self.last_id = last_id
             self.getData()
@@ -37,19 +37,17 @@ class Curve(Line2D):
 
     def getData(self):
 
-        if self.dataset == "real_time":
-            [date, value], new_id = self.parent.parent.db.getData_Numpy(self.row, self.column, self.last_id)
-        else:
-            end_id = self.parent.parent.db.getrowrelative2Date(self.row, 'id',
-                                                               self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
-                                                               True)
-            [date, value], new_id = self.parent.parent.db.getData_Numpy(self.row, self.column, self.last_id, end_id)
+        end_id = "Now" if self.dataset == "real_time" else self.parent.parent.db.getrowrelative2Date(self.tableName, 'id',
+                                                                                                     self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
+                                                                                                     True)
 
-        if type(date) == np.ndarray:
-            if date.any():
+        new_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id)
+
+        if type(dates) == np.ndarray:
+            if dates.any():
                 if hasattr(self, "minVal"):
-                    date, value = self.checkValues(date, value)
-                self.set_data(np.append(self.get_xdata(), date), np.append(self.get_ydata(), value))
+                    dates, values = self.checkValues(dates, values)
+                self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
                 self.last_id = new_id
                 if not self.firstCall:
                     self.graph.updateLine(self.getLine(), self)
@@ -61,7 +59,7 @@ class Curve(Line2D):
                     self.last_id = 0
         else:
             if self.firstCall:
-                self.parent.parent.showError(date)
+                self.parent.parent.showError(dates)
                 self.last_id = 0
 
         self.firstCall = False
