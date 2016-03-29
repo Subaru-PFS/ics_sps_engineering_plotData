@@ -89,16 +89,16 @@ class alarmChecker(QWidget):
         self.checkCooler()
 
     def checkPressure(self):
-        pressure_date, [pressure_val] = self.parent.db.getLastData("xcu_r1__" + "pressure", "val1")
+        pressure_date, [pressure_val] = self.parent.db.getLastData("%s__pressure"%self.parent.currActor, "val1")
         if float(pressure_val) > 1e-4:
-            self.msg_pressure = " Warning ! PRESSURE : %0.3e Torr is above 1e-4 Torr" % pressure_val
+            self.msg_pressure = " Warning ! PRESSURE : %0.3e Torr is below 1e-4 Torr" % pressure_val
             self.setColor("QPushButton", self.alarm_pressure, "red")
         else:
             self.msg_pressure = "Pressure OK"
             self.setColor("QPushButton", self.alarm_pressure, "green")
 
     def checkTurbo(self):
-        turbospeed_date, [turbospeed_val] = self.parent.db.getLastData("xcu_r1__" + "turbospeed", "val1")
+        turbospeed_date, [turbospeed_val] = self.parent.db.getLastData("%s__turbospeed"%self.parent.currActor, "val1")
         if turbospeed_val < 90000:
             self.msg_turbo = " Warning ! TURBO SPEED is LOW : %i on 90000 RPM" % int(turbospeed_val)
             self.setColor("QPushButton", self.alarm_turbo, "red")
@@ -107,7 +107,7 @@ class alarmChecker(QWidget):
             self.setColor("QPushButton", self.alarm_turbo, "green")
 
     def checkGatevalve(self):
-        gatevalve_date, [gatevalve_val] = self.parent.db.getLastData("xcu_r1__" + "gatevalve", "val1")
+        gatevalve_date, [gatevalve_val] = self.parent.db.getLastData("%s__gatevalve"%self.parent.currActor, "val1")
         if gatevalve_val != 253:
             self.msg_gatevalve = " Warning ! GATEVALVE is CLOSED"
             self.setColor("QPushButton", self.alarm_gatevalve, "red")
@@ -116,7 +116,7 @@ class alarmChecker(QWidget):
             self.setColor("QPushButton", self.alarm_gatevalve, "green")
 
     def checkCooler(self):
-        coolerPower_date, [coolerPower_val] = self.parent.db.getLastData("xcu_r1__" + "coolertemps", "power")
+        coolerPower_date, [coolerPower_val] = self.parent.db.getLastData("%s__coolertemps"%self.parent.currActor, "power")
         if coolerPower_val < 70 or coolerPower_val > 245:
             self.msg_cooler = " Warning ! COOLER POWER : % i W  Out of range 70-245 W" % int(coolerPower_val)
             self.setColor("QPushButton", self.alarm_cooler, "red")

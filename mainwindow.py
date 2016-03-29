@@ -27,13 +27,13 @@ rcParams.update({'figure.autolayout': True})
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, os_path, ip, port):
+    def __init__(self, os_path, ip, port, actor):
         super(MainWindow, self).__init__()
 
         self.os_path = os_path
         self.path_img = self.os_path + "/img/"
         self.readCfg(self.os_path + "/config/curve_config.cfg")
-
+        self.currActor = actor
         self.db = databaseManager(ip, port)
         err = self.db.initDatabase()
         if err != -1:

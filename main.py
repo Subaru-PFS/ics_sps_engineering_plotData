@@ -13,6 +13,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     addr = sys.argv[1] if len(sys.argv) > 1 else "localhost"
     port = sys.argv[2] if len(sys.argv) > 2 else 5432
+    actor = sys.argv[3] if len(sys.argv) > 3 else "xcu_r1"
 
-    w = MainWindow(absolute_path, addr, port)
+    w = MainWindow(absolute_path, addr, port, actor)
     sys.exit(app.exec_())
