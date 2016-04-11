@@ -32,34 +32,41 @@ class Curve(Line2D):
         if last_id not in [-1, -2, -3, -4]:
             self.last_id = last_id
             self.getData()
-        else:
+        elif last_id is not -5:
             self.parent.parent.showError(last_id)
 
     def getData(self):
 
-        end_id = "Now" if self.dataset == "real_time" else self.parent.parent.db.getrowrelative2Date(self.tableName, 'id',
+        end_id = "Now" if self.dataset == "real_time" else self.parent.parent.db.getrowrelative2Date(self.tableName,
+                                                                                                     'id',
                                                                                                      self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
                                                                                                      True)
-
-        new_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id)
+        if end_id != -5:
+            new_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id)
 
         if type(dates) == np.ndarray:
             if dates.any():
                 if hasattr(self, "minVal"):
                     dates, values = self.checkValues(dates, values)
-                self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                self.last_id = new_id
-                if not self.firstCall:
-                    self.graph.updateLine(self.getLine(), self)
-                elif self.dataset == "real_time":
-                    self.watcher.start()
+                if dates.any():
+                    self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.last_id = new_id
+                    if not self.firstCall:
+                        self.graph.updateLine(self.getLine(), self)
+                    elif self.dataset == "real_time":
+                        self.watcher.start()
+                else:
+                    if self.firstCall:
+                        self.parent.parent.showError(-4)
+                        self.last_id = 0
             else:
                 if self.firstCall:
                     self.parent.parent.showError(-4)
                     self.last_id = 0
         else:
             if self.firstCall:
-                self.parent.parent.showError(dates)
+                if dates is not -5:
+                    self.parent.parent.showError(dates)
                 self.last_id = 0
 
         self.firstCall = False
@@ -79,8 +86,7 @@ class Curve(Line2D):
                 return line2D
 
     def findAcceptableRange(self):
-        rangeVals = {"temperature_k": [15, 330], "temperature_c": [-10, 50], "pressure": [1e-9, 1e4],
-                     "power": [0, 400]}
+        rangeVals = {"temperature_k": [15, 330], "temperature_c": [-10, 50], "pressure": [1e-9, 1e4], "power": [0, 400]}
         for types, range in rangeVals.iteritems():
             if types in self.type:
                 self.minVal = rangeVals[types][0]

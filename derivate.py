@@ -19,8 +19,9 @@ class Derivate(Curve):
                                                                                                      self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
                                                                                                      True)
 
-        all_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id, False)
 
+        if end_id != -5:
+             all_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id, False)
         if type(dates) == np.ndarray:
             if dates.any() and integ_time > 15:
                 while i < len(dates):
@@ -54,7 +55,8 @@ class Derivate(Curve):
                 self.last_id = 0
         else:
             if self.firstCall:
-                self.parent.parent.showError(dates)
+                if dates is not -5:
+                    self.parent.parent.showError(dates)
                 self.last_id = 0
 
         self.firstCall = False
