@@ -2,9 +2,9 @@ from functools import partial
 import datetime
 import ConfigParser
 
-from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget
-from PyQt5.QtCore import QTimer
-
+from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget, QSizePolicy
+from PyQt5.QtCore import QTimer, QByteArray, Qt
+from PyQt5.QtGui import QMovie
 
 class alarmChecker(QWidget):
     def __init__(self, parent):
@@ -30,16 +30,30 @@ class alarmChecker(QWidget):
     def getAlarm(self):
 
         self.alarm_layout = QGridLayout()
+        self.movie = QMovie(self.parent.os_path + "/img/giphy2.gif", QByteArray(), self)
+
+        self.movie_screen = QLabel()
+        # Make label fit the gif
+        self.movie_screen.setFixedSize(80,50)
+
+        # Add the QMovie object to the label
+        self.movie.setCacheMode(QMovie.CacheAll)
+        self.movie.setSpeed(100)
+        self.movie_screen.setMovie(self.movie)
+        self.movie.start()
+
         self.label_acq = QLabel("ACQUISITION")
-        self.alarm_layout.addWidget(self.label_acq, 0, 0, 1, 2)
+        self.alarm_layout.addWidget(self.movie_screen, 0, 0, 1, 1)
+        self.alarm_layout.addWidget(self.label_acq, 0, 1, 1, 2)
         self.setColor("QLabel", self.label_acq, "green")
 
         for i, device in enumerate(self.list_alarm):
             name = device["tableName"] + device["key"]
             button = QPushButton(device["label"].upper())
+            button.setFixedHeight(50)
             self.setColor("QPushButton", button, "green")
             button.clicked.connect(partial(self.showWarning, "msg_%s" % name))
-            self.alarm_layout.addWidget(button, 0, i + 2, 1, 1)
+            self.alarm_layout.addWidget(button, 0, i + 3, 1, 1)
             setattr(self, "alarm_%s" % name, button)
 
         self.watcher_alarm = QTimer(self)
