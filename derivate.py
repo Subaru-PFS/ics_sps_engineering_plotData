@@ -6,10 +6,12 @@ from curve import Curve
 class Derivate(Curve):
     def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, spinbox):
         self.spinbox = spinbox
+        self.integ_time = self.spinbox.value()
         super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo)
 
+
     def getData(self):
-        integ_time = self.spinbox.value()
+
         i = 0
         a = 0
         result = []
@@ -19,13 +21,12 @@ class Derivate(Curve):
                                                                                                      self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
                                                                                                      True)
 
-
         if end_id != -5:
              all_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id, False)
         if type(dates) == np.ndarray:
-            if dates.any() and integ_time > 15:
+            if dates.any() and self.integ_time > 15:
                 while i < len(dates):
-                    while integ_time - (dates[i] - dates[a]) > 2:
+                    while self.integ_time - (dates[i] - dates[a]) > 2:
                         i += 1
                         if i == len(dates):
                             end = True

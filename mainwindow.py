@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         self.new_tab_action.triggered.connect(self.addTab)
         self.database_action.triggered.connect(self.calendar.show)
         self.about_action.triggered.connect(
-            partial(self.showInformation, "PlotActor v0.3 working with Extract data v0.3"))
+            partial(self.showInformation, "PlotActor v0.4 working with lib_DataQuery v0.4\n\r made for PFS by aLF"))
 
         self.WindowsMenu = self.menubar.addMenu('&Windows')
         self.WindowsMenu.addAction(self.new_tab_action)
