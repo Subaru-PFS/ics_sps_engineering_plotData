@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
 
         self.os_path = os_path
         self.path_img = self.os_path + "/img/"
-        self.readCfg(self.os_path + "/config/curve_config.cfg")
+        self.readCfg(os_path.split('ics_sps_engineering_plotData')[0]+'ics_sps_engineering_Lib_dataQuery/config/curve_config.cfg')
         self.db = databaseManager(ip, port)
         err = self.db.initDatabase()
         if err != -1:
