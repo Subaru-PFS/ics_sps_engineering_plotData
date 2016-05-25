@@ -31,8 +31,10 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.os_path = os_path
+        self.config_path = os_path.split('ics_sps_engineering_plotData')[0]+'ics_sps_engineering_Lib_dataQuery/config/'
         self.path_img = self.os_path + "/img/"
-        self.readCfg(os_path.split('ics_sps_engineering_plotData')[0]+'ics_sps_engineering_Lib_dataQuery/config/curve_config.cfg')
+
+        self.readCfg(self.config_path+'curve_config.cfg')
         self.db = databaseManager(ip, port)
         err = self.db.initDatabase()
         if err != -1:
@@ -134,7 +136,7 @@ class MainWindow(QMainWindow):
                 self.device_dict[a][keys]["ylabel"] = ylabels
 
     def setNewConfig(self):
-        self.readCfg(self.os_path + "/config/curve_config.cfg")
+        self.readCfg(self.config_path+'curve_config.cfg')
         self.qdockalarm_widget.getTimeout()
         self.showInformation("New configuration loaded")
 
