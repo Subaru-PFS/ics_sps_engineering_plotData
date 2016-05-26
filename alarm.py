@@ -1,7 +1,7 @@
 from functools import partial
 import datetime
 import ConfigParser
-
+import copy
 from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget, QSizePolicy
 from PyQt5.QtCore import QTimer, QByteArray, Qt
 from PyQt5.QtGui import QMovie
@@ -62,11 +62,12 @@ class alarmChecker(QWidget):
         self.watcher_alarm.start()
 
     def getTimeout(self):
+        self.device_dict = copy.deepcopy(self.parent.device_dict)
         self.timeout_limit = 90
         self.list_timeout = []
         self.last_date = {}
         self.last_time = {}
-        for key, value in self.parent.device_dict.iteritems():
+        for key, value in self.device_dict.iteritems():
             self.last_date[key] = 0
             self.last_time[key] = datetime.datetime.now()
 
@@ -98,7 +99,7 @@ class alarmChecker(QWidget):
         watcher_timeout.singleShot(2000, partial(self.showTimeout, i))
 
     def checkTimeout(self):
-        for key, value in self.parent.device_dict.iteritems():
+        for key, value in self.device_dict.iteritems():
             date, id = self.parent.db.getLastData(key, "id")
             if type(id) is list:
                 self.networkError = False

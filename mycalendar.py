@@ -70,10 +70,12 @@ class Calendar(QWidget):
     def defaultDate(self):
         mydate = datetime.datetime(datetime.datetime.today().year, datetime.datetime.today().month,
                                    datetime.datetime.today().day)
+        self.mydatetime = mydate
         self.mydate_num = self.parent.db.convertTimetoAstro(mydate.strftime("%d/%m/%Y %H:%M:%S"))
 
     def getChosenDate(self):
         mydate = datetime.datetime.combine(self.cal.selectedDate().toPyDate(), datetime.datetime.min.time())
+        self.mydatetime = mydate
         self.mydate_num = self.parent.db.convertTimetoAstro(mydate.strftime("%d/%m/%Y %H:%M:%S"))
 
     def showDate(self, date):

@@ -18,6 +18,7 @@ class Tab(QWidget):
         self.setLayout(self.layout)
 
     def addGraph(self):
+        self.parent.readCfg(self.parent.config_path, last=False)
         self.layout.addWidget(PlotWindow(self))
         self.layout.addWidget(self.button_add_graph)
 

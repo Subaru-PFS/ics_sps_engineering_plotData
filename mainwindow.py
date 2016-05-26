@@ -17,11 +17,12 @@ from functools import partial
 
 from ics_sps_engineering_Lib_dataQuery import databaseManager
 import ConfigParser
-
+import os
 from mycalendar import Calendar
 from alarm import alarmChecker
 from tab import Tab
 from matplotlib import rcParams
+import datetime as dt
 
 rcParams.update({'figure.autolayout': True})
 
@@ -31,10 +32,11 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.os_path = os_path
-        self.config_path = os_path.split('ics_sps_engineering_plotData')[0]+'ics_sps_engineering_Lib_dataQuery/config/'
+        self.config_path = os_path.split('ics_sps_engineering_plotData')[
+                               0] + 'ics_sps_engineering_Lib_dataQuery/config/'
         self.path_img = self.os_path + "/img/"
 
-        self.readCfg(self.config_path+'curve_config.cfg')
+        self.readCfg(self.config_path)
         self.db = databaseManager(ip, port)
         err = self.db.initDatabase()
         if err != -1:
@@ -94,7 +96,7 @@ class MainWindow(QMainWindow):
         self.new_tab_action.triggered.connect(self.addTab)
         self.database_action.triggered.connect(self.calendar.show)
         self.about_action.triggered.connect(
-            partial(self.showInformation, "PlotActor v0.4 working with lib_DataQuery v0.4\n\r made for PFS by aLF"))
+            partial(self.showInformation, "PlotActor v0.5 working with lib_DataQuery v0.5\n\r made for PFS by aLF"))
 
         self.WindowsMenu = self.menubar.addMenu('&Windows')
         self.WindowsMenu.addAction(self.new_tab_action)
@@ -114,29 +116,51 @@ class MainWindow(QMainWindow):
 
         self.qdockalarm.setWidget(self.qdockalarm_widget)
 
-    def readCfg(self, path):
-        self.device_dict = {}
+    def readCfg(self, path, last=True):
+        res=[]
+        all_file = next(os.walk(path))[-1]
+        for f in all_file:
+            config = ConfigParser.ConfigParser()
+            config.readfp(open(path+f))
+            try:
+                date = config.get('config_date', 'date')
+                res.append((f, dt.datetime.strptime(date, "%d/%m/%Y")))
+            except ConfigParser.NoSectionError:
+                pass
         config = ConfigParser.ConfigParser()
-        config.readfp(open(path))
-        for a in config.sections():
-            inter = {}
-            for b in config.options(a):
-                if b == "label_device":
-                    self.device_dict[a] = {"label_device": config.get(a, b)}
-                else:
-                    inter[b] = config.get(a, b).split(',')
-                    inter[b] = self.cleanSpace(inter[b])
+        if last:
+            res.sort(key=lambda tup: tup[1])
 
-            for keys, types, labels, units, ylabels in zip(inter["key"], inter["type"], inter["label"], inter["unit"],
-                                                           inter["ylabel"]):
-                self.device_dict[a][keys] = {}
-                self.device_dict[a][keys]["type"] = types
-                self.device_dict[a][keys]["label"] = labels
-                self.device_dict[a][keys]["unit"] = units
-                self.device_dict[a][keys]["ylabel"] = ylabels
+        else:
+            res2 = []
+            for f, datetime in res:
+                if self.calendar.mydatetime>datetime:
+                    res2.append((f, self.calendar.mydatetime-datetime))
+            res2.sort(key=lambda tup: tup[1])
+            config.readfp(open(path+res2[0][0]))
+
+
+        self.device_dict = {}
+        for a in config.sections():
+            if a!='config_date':
+                inter = {}
+                for b in config.options(a):
+                    if b == "label_device":
+                        self.device_dict[a] = {"label_device": config.get(a, b)}
+                    else:
+                        inter[b] = config.get(a, b).split(',')
+                        inter[b] = self.cleanSpace(inter[b])
+
+                for keys, types, labels, units, ylabels in zip(inter["key"], inter["type"], inter["label"], inter["unit"],
+                                                               inter["ylabel"]):
+                    self.device_dict[a][keys] = {}
+                    self.device_dict[a][keys]["type"] = types
+                    self.device_dict[a][keys]["label"] = labels
+                    self.device_dict[a][keys]["unit"] = units
+                    self.device_dict[a][keys]["ylabel"] = ylabels
 
     def setNewConfig(self):
-        self.readCfg(self.config_path+'curve_config.cfg')
+        self.readCfg(self.config_path)
         self.qdockalarm_widget.getTimeout()
         self.showInformation("New configuration loaded")
 
