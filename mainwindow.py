@@ -130,14 +130,19 @@ class MainWindow(QMainWindow):
         config = ConfigParser.ConfigParser()
         if last:
             res.sort(key=lambda tup: tup[1])
-
+            config.readfp(open(path+res[-1][0]))
         else:
             res2 = []
             for f, datetime in res:
                 if self.calendar.mydatetime>datetime:
                     res2.append((f, self.calendar.mydatetime-datetime))
-            res2.sort(key=lambda tup: tup[1])
-            config.readfp(open(path+res2[0][0]))
+            if res2:
+                res2.sort(key=lambda tup: tup[1])
+                config.readfp(open(path+res2[0][0]))
+            else:
+                res.sort(key=lambda tup: tup[1])
+                config.readfp(open(path+res[0][0]))
+
 
 
         self.device_dict = {}
