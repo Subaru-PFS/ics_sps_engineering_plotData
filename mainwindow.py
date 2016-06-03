@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
 
         self.menubar = self.menuBar()
         self.database_action = QAction('Database', self)
-        self.curves_action = QAction('Update Curves', self)
+        self.curves_action = QAction('Update Configuration', self)
         self.new_tab_action = QAction('Open a new tab', self)
         self.about_action = QAction('About', self)
 
