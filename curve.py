@@ -28,7 +28,7 @@ class Curve(Line2D):
 
     def getFirstId(self):
         date_num = self.graph.numDate
-        last_id = self.parent.parent.db.getrowrelative2Date(self.tableName, 'id', date_num)
+        last_id = self.parent.parent.db.getrowrelative2Date(self.tableName, 'id', date_num, True)
         if last_id not in [-1, -2, -3, -4]:
             self.last_id = last_id
             self.getData()
