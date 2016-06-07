@@ -38,12 +38,12 @@ class MainWindow(QMainWindow):
 
         self.readCfg(self.config_path)
         self.db = databaseManager(ip, port)
-        err = self.db.initDatabase()
-        if err != -1:
+        no_err = self.db.initDatabase()
+        if no_err:
             self.getIcons()
             self.getWidgets()
         else:
-            self.showError(err)
+            self.showError(no_err)
 
         self.width = 1024
         self.height = 768
@@ -117,11 +117,11 @@ class MainWindow(QMainWindow):
         self.qdockalarm.setWidget(self.qdockalarm_widget)
 
     def readCfg(self, path, last=True):
-        res=[]
+        res = []
         all_file = next(os.walk(path))[-1]
         for f in all_file:
             config = ConfigParser.ConfigParser()
-            config.readfp(open(path+f))
+            config.readfp(open(path + f))
             try:
                 date = config.get('config_date', 'date')
                 res.append((f, dt.datetime.strptime(date, "%d/%m/%Y")))
@@ -130,24 +130,22 @@ class MainWindow(QMainWindow):
         config = ConfigParser.ConfigParser()
         if last:
             res.sort(key=lambda tup: tup[1])
-            config.readfp(open(path+res[-1][0]))
+            config.readfp(open(path + res[-1][0]))
         else:
             res2 = []
             for f, datetime in res:
-                if self.calendar.mydatetime>datetime:
-                    res2.append((f, self.calendar.mydatetime-datetime))
+                if self.calendar.mydatetime > datetime:
+                    res2.append((f, self.calendar.mydatetime - datetime))
             if res2:
                 res2.sort(key=lambda tup: tup[1])
-                config.readfp(open(path+res2[0][0]))
+                config.readfp(open(path + res2[0][0]))
             else:
                 res.sort(key=lambda tup: tup[1])
-                config.readfp(open(path+res[0][0]))
-
-
+                config.readfp(open(path + res[0][0]))
 
         self.device_dict = {}
         for a in config.sections():
-            if a!='config_date':
+            if a != 'config_date':
                 inter = {}
                 for b in config.options(a):
                     if b == "label_device":
@@ -156,7 +154,8 @@ class MainWindow(QMainWindow):
                         inter[b] = config.get(a, b).split(',')
                         inter[b] = self.cleanSpace(inter[b])
 
-                for keys, types, labels, units, ylabels in zip(inter["key"], inter["type"], inter["label"], inter["unit"],
+                for keys, types, labels, units, ylabels in zip(inter["key"], inter["type"], inter["label"],
+                                                               inter["unit"],
                                                                inter["ylabel"]):
                     self.device_dict[a][keys] = {}
                     self.device_dict[a][keys]["type"] = types
@@ -188,7 +187,7 @@ class MainWindow(QMainWindow):
     def showError(self, nb_error):
         error_code = {-1: "The database is unreachable, check your network and your configuration",
                       -2: "They're not such columns / rows in your database", -3: "Bad format date",
-                      -4: "No data to display"}
+                      -4: "No data to display", -5: "network lost"}
         reply = QMessageBox.critical(self, 'Message', error_code[nb_error], QMessageBox.Ok)
 
     def showInformation(self, information):

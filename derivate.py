@@ -9,55 +9,59 @@ class Derivate(Curve):
         self.integ_time = self.spinbox.value()
         super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo)
 
+    def getData(self, getStarted=False):
 
-    def getData(self):
+        if getStarted:
+            return_values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, self.end_id,
+                                                          False)
+            if type(return_values) is int:
+                self.parent.parent.showError(return_values)
+            elif self.integ_time > 15:
+                slope = self.computeSlope(*return_values)
+                if slope is not None:
+                    new_id, dates, values = slope
+                    self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.last_id = new_id
+                    if self.dataset == "real_time":
+                        self.watcher.start()
+            else:
+                self.last_id = 0
+        else:
+            return_values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, self.end_id,
+                                                          False)
+            if return_values in [-5, -4]:
+                pass
+            elif type(return_values) is int:
+                self.watcher.stop()
+                self.parent.parent.showError(return_values)
+            else:
+                slope = self.computeSlope(*return_values)
+                if slope is not None:
+                    new_id, dates, values = slope
+                    self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.graph.updateLine(self.getLine(), self)
+                    self.last_id = new_id
 
+    def computeSlope(self, all_id, dates, values):
         i = 0
         a = 0
         result = []
         end = False
-        end_id = "Now" if self.dataset == "real_time" else self.parent.parent.db.getrowrelative2Date(self.tableName,
-                                                                                                     'id',
-                                                                                                     self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
-                                                                                                     True)
-
-        if end_id != -5:
-             all_id, dates, values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, end_id, False)
-        if type(dates) == np.ndarray:
-            if dates.any() and self.integ_time > 15:
-                while i < len(dates):
-                    while self.integ_time - (dates[i] - dates[a]) > 2:
-                        i += 1
-                        if i == len(dates):
-                            end = True
-                            break
-                    if end:
-                        last_id = all_id[a - 1]
-                        break
-                    else:
-                        result.append([a, i])
-                        a += 1
-                if result:
-                    result_date, result_value = np.zeros(len(result)), np.zeros(len(result))
-                    for i in range(len(result)):
-                        result_date[i] = self.parent.parent.db.convertfromAstro(
-                            (dates[result[i][0]] + dates[result[i][1]]) / 2)
-                        result_value[i] = 60 * (values[result[i][1]] - values[result[i][0]]) / (
-                            dates[result[i][1]] - dates[result[i][0]])
-
-                    self.set_data(np.append(self.get_xdata(), result_date), np.append(self.get_ydata(), result_value))
-                    self.last_id = last_id
-                    if not self.firstCall:
-                        self.graph.updateLine(self.getLine(), self)
-                    elif self.dataset == "real_time":
-                        self.watcher.start()
+        while i < len(dates):
+            while self.integ_time - (dates[i] - dates[a]) > 2:
+                i += 1
+                if i == len(dates):
+                    end = True
+                    break
+            if end:
+                last_id = all_id[a - 1]
+                break
             else:
-                self.parent.parent.showError(-4)
-                self.last_id = 0
-        else:
-            if self.firstCall:
-                if dates is not -5:
-                    self.parent.parent.showError(dates)
-                self.last_id = 0
+                result.append([a, i])
+                a += 1
+        if result:
+            result_date = np.array([(dates[res[0]] + dates[res[1]]) / 2 for res in result])
+            result_value = np.array(
+                [60 * (values[res[1]] - values[res[0]]) / (dates[res[1]] - dates[res[0]]) for res in result])
 
-        self.firstCall = False
+            return last_id, self.parent.parent.db.convertArraytoAstro(result_date), result_value

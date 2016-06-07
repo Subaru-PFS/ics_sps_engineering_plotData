@@ -77,6 +77,7 @@ class Graph(FigureCanvas):
             if new_curve.last_id > 0:
                 line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-o', label=label)
                 self.dictofline[line] = new_curve
+                new_curve.setLine(line)
                 self.figure.canvas.draw()
                 return 1
             else:
