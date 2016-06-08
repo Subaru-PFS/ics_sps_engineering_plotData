@@ -3,7 +3,6 @@
 
 
 import matplotlib
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QAction, QInputDialog, \
@@ -39,7 +38,7 @@ class MainWindow(QMainWindow):
         self.readCfg(self.config_path)
         self.db = databaseManager(ip, port)
         no_err = self.db.initDatabase()
-        if no_err:
+        if no_err != -1:
             self.getIcons()
             self.getWidgets()
         else:
