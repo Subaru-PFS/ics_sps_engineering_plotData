@@ -171,11 +171,11 @@ class Graph(FigureCanvas):
         if hasattr(self, "linev"):
             if not self.onDrawing:
                 self.onDrawing = True
-                timer = QTimer.singleShot(8000, partial(self.updateLimit, bool_draw=True))
+                timer = QTimer.singleShot(15000, partial(self.updateLimit, bool_draw=True))
         else:
             if not self.onDrawing:
                 self.onDrawing = True
-                timer = QTimer.singleShot(2000, self.updateLimit)
+                timer = QTimer.singleShot(4000, self.updateLimit)
 
     def updateLimit(self, bool_draw=False):
         if not bool_draw:

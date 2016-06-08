@@ -39,7 +39,7 @@ class Derivate(Curve):
                 if slope is not None:
                     new_id, dates, values = slope
                     self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                    self.graph.updateLine(self.getLine(), self)
+                    self.graph.updateLine(self.currLine, self)
                     self.last_id = new_id
 
     def computeSlope(self, all_id, dates, values):

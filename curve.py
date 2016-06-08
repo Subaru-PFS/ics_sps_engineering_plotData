@@ -22,7 +22,7 @@ class Curve(Line2D):
         self.firstCall = True
         self.findAcceptableRange()
         self.watcher = QTimer(self.parent.parent)
-        self.watcher.setInterval(1000)
+        self.watcher.setInterval(700)
         self.watcher.timeout.connect(self.getData)
         self.getIdBoundaries()
         self.setLineStyle()
