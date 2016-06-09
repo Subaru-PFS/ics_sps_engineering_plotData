@@ -102,6 +102,8 @@ class Graph(FigureCanvas):
 
     def getAxe(self, type):
         if 'pressure' in type and type[-2:] != "dt":
+            if self.button_vcursor.isChecked():
+                self.button_vcursor.click()
             if self.ax.get_lines():
                 if self.dictofline[self.ax.get_lines()[0]].type != type:
                     if not self.ax2.get_lines():

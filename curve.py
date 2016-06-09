@@ -33,13 +33,14 @@ class Curve(Line2D):
         if self.last_id < 0:
             self.parent.parent.showError(self.last_id)
         elif self.dataset == "past_run":
-                self.end_id = self.parent.parent.db.getrowrelative2Date(self.tableName, 'id',
-                                                                        self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
-                                                                        True)
-                if self.end_id < 0:
-                    self.parent.parent.showError(self.end_id)
-                else:
-                    self.getData(True)
+            self.end_id = self.parent.parent.db.getrowrelative2Date(self.tableName, 'id',
+                                                                    self.graph.numDate + self.parent.parent.calendar.spinboxDays.value() * 86400,
+                                                                    True, True)
+            if self.end_id < 0:
+                self.parent.parent.showError(self.end_id)
+                self.last_id = -4
+            else:
+                self.getData(True)
         else:
             self.getData(True)
 
@@ -51,10 +52,14 @@ class Curve(Line2D):
             else:
                 new_id, dates, values = return_values
                 dates, values = self.checkValues(dates, values)
-                self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                self.last_id = new_id
-                if self.dataset == "real_time":
-                    self.watcher.start()
+                if values.any():
+                    self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.last_id = new_id
+                    if self.dataset == "real_time":
+                        self.watcher.start()
+                else:
+                    self.parent.parent.showError(-4)
+                    self.last_id = -4
         else:
             return_values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, self.end_id)
             if return_values in [-5, -4]:
@@ -97,5 +102,4 @@ class Curve(Line2D):
                     value = np.delete(value, i)
                 else:
                     i += 1
-
         return date, value
