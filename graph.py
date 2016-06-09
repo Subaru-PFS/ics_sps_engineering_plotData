@@ -89,14 +89,15 @@ class Graph(FigureCanvas):
         if self.button_vcursor.isChecked():
             self.button_vcursor.click()
         for ax in self.fig.get_axes():
-            for i, lines in enumerate(ax.get_lines()):
-                if lines.get_label() == label:
-                    self.dictofline.pop(lines, None)
+            for i, line in enumerate(ax.get_lines()):
+                if line.get_label() == label:
+                    self.dictofline.pop(line, None)
                     ax.lines.pop(i)
                     save_ax1, save_ax2, scale_ax1, scale_ax2 = self.orderAxe()
                     self.clearGraph()
                     self.rebuild(save_ax1, save_ax2, scale_ax1, scale_ax2)
                     self.figure.canvas.draw()
+                    del line
                     return 1
         return 0
 
@@ -142,10 +143,11 @@ class Graph(FigureCanvas):
         return self.ax.get_lines(), self.ax2.get_lines(), self.ax.get_yscale(), self.ax2.get_yscale()
 
     def clearGraph(self):
-        self.ax.cla()
-        self.ax2.cla()
-        self.fig.delaxes(self.ax)
-        self.fig.delaxes(self.ax2)
+        while self.fig.get_axes():
+            ax = self.fig.get_axes()[0]
+            ax.cla()
+            self.fig.delaxes(ax)
+            del ax
         self.ax = self.fig.add_subplot(111)
         self.ax.set_autoscaley_on(True)
         self.ax.xaxis_date()
@@ -153,20 +155,18 @@ class Graph(FigureCanvas):
         self.ax2.format_coord = self.make_format(self.ax2, self.ax)
 
     def rebuild(self, save_ax1, save_ax2, scale_ax1="linear", scale_ax2="linear"):
-        for lines in save_ax1:
-            if self.isinDict(lines):
-                line, = self.ax.plot_date(self.dictofline[lines].get_xdata(), self.dictofline[lines].get_ydata(), '-o',
-                                          label=self.dictofline[lines].label)
-                self.dictofline[line] = self.dictofline[lines]
-                self.dictofline.pop(lines, None)
-        for lines in save_ax2:
-            if self.isinDict(lines):
-                line, = self.ax2.plot_date(self.dictofline[lines].get_xdata(), self.dictofline[lines].get_ydata(), '-o',
-                                           label=self.dictofline[lines].label)
-                self.dictofline[line] = self.dictofline[lines]
-                self.dictofline.pop(lines, None)
-        self.ax.set_yscale(scale_ax1)
-        self.ax2.set_yscale(scale_ax2)
+
+        for ax, save_ax, scale_ax in zip(self.fig.get_axes(), [save_ax1, save_ax2], [scale_ax1, scale_ax2]):
+            for lines in save_ax:
+                if self.isinDict(lines):
+                    line, = ax.plot_date(self.dictofline[lines].get_xdata(), self.dictofline[lines].get_ydata(), '-o',
+                                         label=self.dictofline[lines].label)
+                    self.dictofline[line] = self.dictofline[lines]
+                    self.dictofline[line].setLine(line)
+                    self.dictofline.pop(lines, None)
+                    del lines
+
+            ax.set_yscale(scale_ax)
 
     def updateLine(self, line, curve):
         line.set_data(curve.get_data())
@@ -417,7 +417,6 @@ class Graph(FigureCanvas):
 
                 self.label_cursor.setText(txt)
                 self.label_cursor.show()
-
 
     def mouseDoubleClickEvent(self, event):
         if not self.button_vcursor.isChecked():
