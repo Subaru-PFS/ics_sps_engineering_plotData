@@ -1,6 +1,7 @@
 from math import floor, ceil, log10
 import numpy as np
 
+
 def transformCoord2Log(display_coord, ax, ax2, inv=False):
     xmin, xmax = ax2.get_xlim()
     ymin, ymax = ax2.get_ylim()
@@ -23,7 +24,7 @@ def transformCoord2Log(display_coord, ax, ax2, inv=False):
         res = 10 ** (display_coord[1] * slope + offset)
         return [time, res]
     else:
-        if display_coord[1]>0:
+        if display_coord[1] > 0:
             pix_x = (display_coord[0] - offset2) / slope2
             pix_y = (log10(display_coord[1]) - offset) / slope
             return [pix_x, pix_y]
@@ -32,7 +33,7 @@ def transformCoord2Log(display_coord, ax, ax2, inv=False):
 
 def dichot(x, array, ind_inf=0, ind_sup=None):
     if ind_sup is None:
-        ind_sup = len(array)-1
+        ind_sup = len(array) - 1
     if (ind_sup - ind_inf) == 1:
         if abs(array[ind_sup] - x) > abs(array[ind_inf] - x):
             return ind_inf
@@ -49,7 +50,7 @@ def indFinder(t0, array):
     if t0 < array[0]:
         ind = 0
     elif t0 > array[-1]:
-        ind = len(array)-1
+        ind = len(array) - 1
     else:
         ind = dichot(t0, array)
     return ind

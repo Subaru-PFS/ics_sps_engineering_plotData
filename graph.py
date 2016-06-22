@@ -50,10 +50,10 @@ class Graph(FigureCanvas):
         self.label_cursor.setWordWrap(True)
         self.label_cursor.hide()
 
-    def addordelCurve(self, checkbox, label, type, ylabel, unit, tableName, keyword, combo, spinbox=None):
+    def addordelCurve(self, checkbox, label, type, ylabel, unit, tableName, keyword, combo, spinbox=None, cmb_unit=None):
         if not self.rdy_check:
             if checkbox.isChecked():
-                if self.addCurve(label, type, ylabel, unit, tableName, keyword, combo, spinbox):
+                if self.addCurve(label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
                     return 1
                 else:
                     self.rdy_check = True
@@ -67,13 +67,13 @@ class Graph(FigureCanvas):
         else:
             self.rdy_check = False
 
-    def addCurve(self, label, type, ylabel, unit, tableName, keyword, combo, spinbox):
+    def addCurve(self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
         ax = self.getAxe(type)
         if ax is not None:
             if not spinbox:
                 new_curve = Curve(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo)
             else:
-                new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, spinbox)
+                new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit)
             if new_curve.last_id > 0:
                 line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-o', label=label)
                 self.dictofline[line] = new_curve

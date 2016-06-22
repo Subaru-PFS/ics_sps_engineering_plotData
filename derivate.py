@@ -4,9 +4,12 @@ from curve import Curve
 
 
 class Derivate(Curve):
-    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, spinbox):
+    enum = {0: 60, 1: 3600}
+
+    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
         self.spinbox = spinbox
         self.integ_time = self.spinbox.value()
+        self.coeff = Derivate.enum[cmb_unit.currentIndex()]
         super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo)
 
     def getData(self, getStarted=False):
@@ -62,6 +65,6 @@ class Derivate(Curve):
         if result:
             result_date = np.array([(dates[res[0]] + dates[res[1]]) / 2 for res in result])
             result_value = np.array(
-                [60 * (values[res[1]] - values[res[0]]) / (dates[res[1]] - dates[res[0]]) for res in result])
+                [self.coeff * (values[res[1]] - values[res[0]]) / (dates[res[1]] - dates[res[0]]) for res in result])
 
             return last_id, self.parent.parent.db.convertArraytoAstro(result_date), result_value

@@ -69,18 +69,20 @@ class PlotWindow(QWidget):
                                                      curveName="%s_d%s_dt" % (dict["label_device"], curves["label"]))
                     checkbox_deriv = QCheckBox("d%s_dt" % curves["label"], self)
                     integ_time = self.getSpinBox()
+                    combo_unit = self.getComboUnit(curves["unit"])
                     checkbox_deriv.stateChanged.connect(partial(self.graph.addordelCurve, checkbox_deriv,
                                                                 label="%s_d%s_dt" % (
                                                                     dict["label_device"], curves["label"]),
                                                                 type="d%s_dt" % curves["type"],
-                                                                ylabel="d%s_dt (%s/min)" % (
-                                                                    curves["type"].capitalize(), curves["unit"]),
+                                                                ylabel="d%s_dt (%s)" % (
+                                                                    curves["type"].capitalize(), str(combo_deriv.currentText())),
                                                                 unit=curves["unit"],
                                                                 tableName=device, keyword=keys,
-                                                                combo=combo_deriv, spinbox=integ_time))
+                                                                combo=combo_deriv, spinbox=integ_time, cmb_unit=combo_unit))
                     grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
                     grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
-                    grid.addWidget(integ_time, i + len(sorted_curves), 2)
+                    grid.addWidget(combo_unit, i + len(sorted_curves), 2)
+                    grid.addWidget(integ_time, i + len(sorted_curves), 3)
             self.groupbox_layout.addWidget(groupBox)
 
         self.button_del_graph = QPushButton("Delete Graph")
@@ -127,6 +129,13 @@ class PlotWindow(QWidget):
         integ_time.setValue(600)
         integ_time.setFixedWidth(80)
         return integ_time
+
+    def getComboUnit(self, unit):
+        combo = QComboBox()
+        combo.addItems(["%s/%s"%(unit, t) for t in ["min", "hour"]])
+        return combo
+
+
 
     def getButtonArrow(self):
 

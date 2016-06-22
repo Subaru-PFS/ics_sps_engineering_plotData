@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import ConfigParser
 import copy
-from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget, QSizePolicy
+from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget, QSizePolicy, QDialogButtonBox, QDialog, QVBoxLayout, QCheckBox
 from PyQt5.QtCore import QTimer, QByteArray, Qt
 from PyQt5.QtGui import QMovie
 
@@ -43,11 +43,18 @@ class alarmChecker(QWidget):
         self.movie.setSpeed(100)
         self.movie_screen.setMovie(self.movie)
         self.movie.start()
+        self.timeout_ack = []
+        self.dialog = self.dialogTimeout()
+        self.dialog.hide()
 
-        self.label_acq = QLabel("ACQUISITION")
+        self.label_acq = QPushButton("ACQUISITION")
+        self.label_acq.clicked.connect(self.dialog.show)
+        self.label_acq.setFixedHeight(50)
+        self.setColor("QPushButton", self.label_acq, "green")
+
         self.alarm_layout.addWidget(self.movie_screen, 0, 0, 1, 1)
         self.alarm_layout.addWidget(self.label_acq, 0, 1, 1, 2)
-        self.setColor("QLabel", self.label_acq, "green")
+
 
         for i, device in enumerate(self.list_alarm):
             name = device["tableName"] + device["key"]
@@ -83,20 +90,25 @@ class alarmChecker(QWidget):
         self.checker_timeout.start()
 
     def showTimeout(self, i):
+        for timeout in self.timeout_ack:
+            try:
+                self.list_timeout.remove(timeout)
+            except ValueError:
+                pass
         if not self.networkError:
             if self.list_timeout:
                 if i < len(self.list_timeout):
                     self.label_acq.setText("TIME OUT ON %s" % self.list_timeout[i])
-                    self.setColor("QLabel", self.label_acq, "red")
+                    self.setColor("QPushButton", self.label_acq, "red")
                     i += 1
                 else:
                     i = 0
             else:
                 self.label_acq.setText("ACQUISITION")
-                self.setColor("QLabel", self.label_acq, "green")
+                self.setColor("QPushButton", self.label_acq, "green")
         else:
             self.label_acq.setText("SERVER LOST")
-            self.setColor("QLabel", self.label_acq, "orange")
+            self.setColor("QPushButton", self.label_acq, "orange")
         watcher_timeout = QTimer(self)
         watcher_timeout.singleShot(2000, partial(self.showTimeout, i))
 
@@ -151,5 +163,36 @@ class alarmChecker(QWidget):
         else:
             widget.setStyleSheet("%s { background-color : %s; color : white; font: 15pt;}" % (type, color))
 
+    def ackTimeout(self, checkbox):
+        if checkbox.isChecked():
+            if str(checkbox.text()) in self.timeout_ack:
+                self.timeout_ack.remove(str(checkbox.text()))
+        else:
+            self.timeout_ack.append(str(checkbox.text()))
+
+
     def showWarning(self, attr):
         reply = QMessageBox.warning(self, 'Message', str(getattr(self, attr)), QMessageBox.Ok)
+
+
+    def dialogTimeout(self):
+        d = QDialog(self)
+        d.setFixedWidth(450)
+        d.setWindowTitle("Setting Devices Timeout")
+        d.setVisible(True)
+        vbox = QVBoxLayout()
+        grid = QGridLayout()
+        grid.setSpacing(20)
+
+        for i, (key, value) in enumerate(self.parent.device_dict.iteritems()):
+            checkbox = QCheckBox(key)
+            checkbox.stateChanged.connect(partial(self.ackTimeout, checkbox))
+            checkbox.setCheckState(2)
+            grid.addWidget(checkbox, 1 + i, 0, 1, 3)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttonBox.button(QDialogButtonBox.Ok).clicked.connect(d.hide)
+        buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(d.hide)
+        vbox.addLayout(grid)
+        vbox.addWidget(buttonBox)
+        d.setLayout(vbox)
+        return d
