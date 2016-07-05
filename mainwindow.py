@@ -14,7 +14,7 @@ matplotlib.use("Qt5Agg")
 
 from functools import partial
 
-from ics_sps_engineering_Lib_dataQuery import databaseManager
+from ics_sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 import ConfigParser
 import os
 from mycalendar import Calendar
@@ -36,7 +36,7 @@ class MainWindow(QMainWindow):
         self.path_img = self.os_path + "/img/"
 
         self.readCfg(self.config_path)
-        self.db = databaseManager(ip, port)
+        self.db = DatabaseManager(ip, port)
         no_err = self.db.initDatabase()
         if no_err != -1:
             self.getIcons()
