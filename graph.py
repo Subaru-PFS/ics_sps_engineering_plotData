@@ -50,7 +50,8 @@ class Graph(FigureCanvas):
         self.label_cursor.setWordWrap(True)
         self.label_cursor.hide()
 
-    def addordelCurve(self, checkbox, label, type, ylabel, unit, tableName, keyword, combo, spinbox=None, cmb_unit=None):
+    def addordelCurve(self, checkbox, label, type, ylabel, unit, tableName, keyword, combo, spinbox=None,
+                      cmb_unit=None):
         if not self.rdy_check:
             if checkbox.isChecked():
                 if self.addCurve(label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
@@ -73,7 +74,8 @@ class Graph(FigureCanvas):
             if not spinbox:
                 new_curve = Curve(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo)
             else:
-                new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit)
+                new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, spinbox,
+                                     cmb_unit)
             if new_curve.last_id > 0:
                 line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-', label=label)
                 self.dictofline[line] = new_curve
@@ -118,7 +120,6 @@ class Graph(FigureCanvas):
                     else:
                         return None
             self.ax.set_yscale('log', basey=10)
-
             return self.ax
 
         for i, ax in enumerate(self.fig.get_axes()):
@@ -159,7 +160,7 @@ class Graph(FigureCanvas):
         for ax, save_ax, scale_ax in zip(self.fig.get_axes(), [save_ax1, save_ax2], [scale_ax1, scale_ax2]):
             for lines in save_ax:
                 if self.isinDict(lines):
-                    line, = ax.plot_date(self.dictofline[lines].get_xdata(), self.dictofline[lines].get_ydata(), '-o',
+                    line, = ax.plot_date(self.dictofline[lines].get_xdata(), self.dictofline[lines].get_ydata(), '-',
                                          label=self.dictofline[lines].label)
                     self.dictofline[line] = self.dictofline[lines]
                     self.dictofline[line].setLine(line)
@@ -276,7 +277,7 @@ class Graph(FigureCanvas):
                         vmax.append([new_coord[1], lines.get_label(), lines])
                         self.setLineStyle(lines)
 
-                if ax.get_yscale() == "log":
+                if ax.get_yscale() in ["log", "symlog"]:
                     subs = [1.0, 2.0, 3.0, 6.0]  # ticks to show per decade
                     ax.yaxis.set_minor_locator(ticker.LogLocator(subs=subs))  # set the ticks position
                 else:
@@ -315,9 +316,9 @@ class Graph(FigureCanvas):
         self.dictofline[line].setLineStyle()
         color = self.dictofline[line].color
         line.set_color(color)
-        #line.set_markerfacecolor(color)
-        #line.set_markeredgecolor(color)
-        #line.set_markersize(marker)
+        # line.set_markerfacecolor(color)
+        # line.set_markeredgecolor(color)
+        # line.set_markersize(marker)
 
     def setDateFormat(self, format_date):
         self.ax.xaxis.set_major_formatter(DateFormatter(format_date))
