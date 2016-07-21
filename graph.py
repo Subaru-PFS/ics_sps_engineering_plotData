@@ -75,7 +75,7 @@ class Graph(FigureCanvas):
             else:
                 new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit)
             if new_curve.last_id > 0:
-                line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-o', label=label)
+                line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-', label=label)
                 self.dictofline[line] = new_curve
                 new_curve.setLine(line)
                 self.figure.canvas.draw()
@@ -315,9 +315,9 @@ class Graph(FigureCanvas):
         self.dictofline[line].setLineStyle()
         color = self.dictofline[line].color
         line.set_color(color)
-        line.set_markerfacecolor(color)
-        line.set_markeredgecolor(color)
-        line.set_markersize(marker)
+        #line.set_markerfacecolor(color)
+        #line.set_markeredgecolor(color)
+        #line.set_markersize(marker)
 
     def setDateFormat(self, format_date):
         self.ax.xaxis.set_major_formatter(DateFormatter(format_date))

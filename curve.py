@@ -52,7 +52,7 @@ class Curve(Line2D):
             else:
                 new_id, dates, values = return_values
                 dates, values = self.checkValues(dates, values)
-                if values.any():
+                if values.size:
                     self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
                     self.last_id = new_id
                     if self.dataset == "real_time":
