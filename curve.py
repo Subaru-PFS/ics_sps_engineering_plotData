@@ -78,10 +78,10 @@ class Curve(Line2D):
         color = self.graph.color_tab[self.combo.currentIndex()]
         self.color = color
         self.set_color(color)
-        self.set_markerfacecolor(color)
-        self.set_markeredgecolor(color)
-        self.set_marker("o")
-        self.set_markersize(marker)
+        #self.set_markerfacecolor(color)
+        #self.set_markeredgecolor(color)
+        #self.set_marker("o")
+        #self.set_markersize(marker)
 
     def setLine(self, line):
         self.currLine = line
