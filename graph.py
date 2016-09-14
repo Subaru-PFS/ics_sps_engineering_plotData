@@ -180,6 +180,7 @@ class Graph(FigureCanvas):
                 self.onDrawing = True
                 timer = QTimer.singleShot(4000, self.updateLimit)
 
+
     def updateLimit(self, bool_draw=False):
         if not bool_draw:
             self.fig.canvas.restore_region(self.background)
@@ -190,8 +191,6 @@ class Graph(FigureCanvas):
             min_values = []
             max_values = []
             for line in ax.lines:
-                if not hasattr(self, "linev"):
-                    ax.draw_artist(line)
                 if self.isinDict(line):
                     curve = self.dictofline[line]
                     min_value, max_value, max_time = curve.currMin, curve.currMax, curve.get_xdata()[-1]
@@ -202,11 +201,8 @@ class Graph(FigureCanvas):
                     else:
                         min_values.append(min_value)
                         max_values.append(max_value)
-            if list_tmax:
-                if np.max(list_tmax) > tmax and not self.toolbar.isZoomed():
-                    samp_time = 0.28 * (np.max(list_tmax) - t0)
-                    self.ax.set_xlim(t0, np.add(np.max(list_tmax), samp_time))
-                    bool_draw = True
+                if not bool_draw:
+                    ax.draw_artist(line)
 
             if min_values and (not (self.toolbar.isZoomed() or self.toolbar.isPanned())):
                 if np.max(max_values) != np.min(min_values):
@@ -225,8 +221,13 @@ class Graph(FigureCanvas):
                             ax.set_ylim(
                                 min(ax.get_ylim()),
                                 np.max(max_values) + (np.max(max_values) - np.min(min_values)) * 0.05)
-
                         bool_draw = True
+
+        if list_tmax:
+            if np.max(list_tmax) > tmax and not self.toolbar.isZoomed():
+                samp_time = 0.28 * (np.max(list_tmax) - t0)
+                self.ax.set_xlim(t0, np.add(np.max(list_tmax), samp_time))
+                bool_draw = True
 
         if bool_draw:
             self.fig.canvas.draw()

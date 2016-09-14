@@ -39,15 +39,20 @@ class myFigure(Figure):
             format_date = "%a %H:%M"
         else:
             format_date = "%H:%M:%S"
+        for line, curve in self.parent.dictofline.iteritems():
+            i, j, step = self.computeStep((t0, tmax), curve)
+            line.set_data(np.array([curve.get_xdata()[p] for p in range(i, j, step)]),np.array([curve.get_ydata()[p] for p in range(i, j, step)]))
+            curve.getExtremum(i)
 
-        for ax in self.parent.fig.get_axes():
-            for line in ax.get_lines():
-                curve = self.parent.dictofline[line]
-                i, j, step = self.computeStep((t0, tmax), curve)
-                line.set_data(np.array([curve.get_xdata()[p] for p in range(i, j, step)]),
-                              np.array([curve.get_ydata()[p] for p in range(i, j, step)]))
-                curve.getExtremum(i)
         self.parent.setDateFormat(format_date)
+        # for ax in self.parent.fig.get_axes():
+        #     for line in ax.get_lines():
+        #         curve = self.parent.dictofline[line]
+        #         i, j, step = self.computeStep((t0, tmax), curve)
+        #         line.set_data(np.array([curve.get_xdata()[p] for p in range(i, j, step)]),
+        #                       np.array([curve.get_ydata()[p] for p in range(i, j, step)]))
+        #         curve.getExtremum(i)
+
 
     def computeStep(self, timeRange, curve):
         maxPt = 1500
