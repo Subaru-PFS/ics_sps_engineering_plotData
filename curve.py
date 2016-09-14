@@ -1,7 +1,6 @@
 import numpy as np
-from matplotlib.lines import Line2D
-
 from PyQt5.QtCore import QTimer
+from matplotlib.lines import Line2D
 
 
 class Curve(Line2D):
@@ -71,17 +70,17 @@ class Curve(Line2D):
                 new_id, dates, values = return_values
                 dates, values = self.checkValues(dates, values)
                 self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                self.graph.updateLine(self.currLine, self)
+                self.graph.updateLine(self.currLine, dates, values)
                 self.last_id = new_id
 
     def setLineStyle(self, marker=2.):
         color = self.graph.color_tab[self.combo.currentIndex()]
         self.color = color
         self.set_color(color)
-        #self.set_markerfacecolor(color)
-        #self.set_markeredgecolor(color)
-        #self.set_marker("o")
-        #self.set_markersize(marker)
+        # self.set_markerfacecolor(color)
+        # self.set_markeredgecolor(color)
+        # self.set_marker("o")
+        # self.set_markersize(marker)
 
     def setLine(self, line):
         self.currLine = line
@@ -103,3 +102,6 @@ class Curve(Line2D):
                 else:
                     i += 1
         return date, value
+
+    def getExtremum(self, i):
+        self.currMin, self.currMax = np.min(self.get_ydata()[i:]), np.max(self.get_ydata()[i:])

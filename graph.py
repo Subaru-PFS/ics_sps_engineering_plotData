@@ -23,7 +23,6 @@ from math import floor, log10
 rcParams.update({'figure.autolayout': True})
 plt.style.use('ggplot')
 
-
 class Graph(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
 
@@ -42,7 +41,7 @@ class Graph(FigureCanvas):
         self.dictofline = {}
         self.ax = self.fig.add_subplot(111)
         self.ax.xaxis_date()
-        self.ax.set_autoscale_on(True)
+        # self.ax.set_autoscale_on(True)
         self.ax2 = self.ax.twinx()
         self.ax2.format_coord = self.make_format(self.ax2, self.ax)
 
@@ -169,8 +168,9 @@ class Graph(FigureCanvas):
 
             ax.set_yscale(scale_ax)
 
-    def updateLine(self, line, curve):
-        line.set_data(curve.get_data())
+    def updateLine(self, line, dates, values):
+        line.set_data(np.append(line.get_xdata(), dates), np.append(line.get_ydata(), values))
+
         if hasattr(self, "linev"):
             if not self.onDrawing:
                 self.onDrawing = True
@@ -187,51 +187,46 @@ class Graph(FigureCanvas):
         list_tmax = []
         t0, tmax = self.ax.get_xlim()
         for i, ax in enumerate(self.fig.get_axes()):
-            list_min_value = []
-            list_max_value = []
+            min_values = []
+            max_values = []
             for line in ax.lines:
                 if not hasattr(self, "linev"):
                     ax.draw_artist(line)
                 if self.isinDict(line):
-                    ind = indFinder(t0, line.get_xdata())
-                    min_value, max_value, max_time = np.min(line.get_ydata()[ind:]), np.max(line.get_ydata()[ind:]), \
-                                                     line.get_xdata()[-1]
+                    curve = self.dictofline[line]
+                    min_value, max_value, max_time = curve.currMin, curve.currMax, curve.get_xdata()[-1]
                     list_tmax.append(max_time)
                     if ax.get_yscale() == "log":
-                        list_min_value.append(10 ** (floor(log10(min_value))))
-                        list_max_value.append(10 ** (floor(log10(max_value)) + 1))
+                        min_values.append(10 ** (floor(log10(min_value))))
+                        max_values.append(10 ** (floor(log10(max_value)) + 1))
                     else:
-                        list_min_value.append(min_value)
-                        list_max_value.append(max_value)
-            min_yaxis, max_yaxis = ax.get_ylim()
-            if list_min_value and (not (self.toolbar.isZoomed() or self.toolbar.isPanned())):
-                if np.max(list_max_value) != np.min(list_min_value):
-                    if np.min(list_min_value) < min_yaxis:
+                        min_values.append(min_value)
+                        max_values.append(max_value)
+            if list_tmax:
+                if np.max(list_tmax) > tmax and not self.toolbar.isZoomed():
+                    samp_time = 0.28 * (np.max(list_tmax) - t0)
+                    self.ax.set_xlim(t0, np.add(np.max(list_tmax), samp_time))
+                    bool_draw = True
+
+            if min_values and (not (self.toolbar.isZoomed() or self.toolbar.isPanned())):
+                if np.max(max_values) != np.min(min_values):
+                    if np.min(min_values) < min(ax.get_ylim()):
                         if ax.get_yscale() == "log":
-                            ax.set_ylim(np.min(list_min_value), max_yaxis)
+                            ax.set_ylim(np.min(min_values), max(ax.get_ylim()))
                         else:
                             ax.set_ylim(
-                                np.min(list_min_value) - (np.max(list_max_value) - np.min(list_min_value)) * 0.05,
-                                max_yaxis)
+                                np.min(min_values) - (np.max(max_values) - np.min(min_values)) * 0.05,
+                                max(ax.get_ylim()))
                         bool_draw = True
-                    if np.max(list_max_value) > max_yaxis:
+                    if np.max(max_values) > max(ax.get_ylim()):
                         if ax.get_yscale() == "log":
-                            ax.set_ylim(min_yaxis,
-                                        np.max(list_max_value) + (
-                                            np.max(list_max_value) - np.min(list_min_value)) * 0.05)
+                            ax.set_ylim(min(ax.get_ylim()), np.max(max_values))
                         else:
-                            ax.set_ylim(min_yaxis,
-                                        np.max(list_max_value))
-                        bool_draw = True
+                            ax.set_ylim(
+                                min(ax.get_ylim()),
+                                np.max(max_values) + (np.max(max_values) - np.min(min_values)) * 0.05)
 
-                else:
-                    ax.set_ylim(np.min(list_min_value) * 0.95, np.max(list_max_value) * 1.05)
-                    bool_draw = True
-        if list_tmax:
-            if np.max(list_tmax) > tmax and not self.toolbar.isZoomed():
-                samp_time = 0.28 * (np.max(list_tmax) - t0)
-                self.ax.set_xlim(t0, np.add(np.max(list_tmax), samp_time))
-                bool_draw = True
+                        bool_draw = True
 
         if bool_draw:
             self.fig.canvas.draw()
