@@ -41,21 +41,24 @@ class myFigure(Figure):
             format_date = "%H:%M:%S"
         for line, curve in self.parent.dictofline.iteritems():
             i, j, step = self.computeStep((t0, tmax), curve)
-            line.set_data(np.array([curve.get_xdata()[p] for p in range(i, j, step)]),np.array([curve.get_ydata()[p] for p in range(i, j, step)]))
+            if self.parent.smartScale.isChecked() and step > 1:
+                res_x = np.zeros((j - i) / step)
+                res_y = np.zeros((j - i) / step)
+                it = np.nditer(res_x, flags=['f_index'])
+                while not it.finished:
+                    ind = i + it.index * step + np.argmax(np.abs(
+                        curve.get_ydata()[i + it.index * step:i + (it.index + 1) * step] - np.mean(
+                            curve.get_ydata()[i + it.index * step:i + (it.index + 1) * step])))
+                    res_x[it.index], res_y[it.index] = curve.get_xdata()[ind], curve.get_ydata()[ind]
+                    it.iternext()
+                line.set_data(res_x, res_y)
+            else:
+                line.set_data(curve.get_data())
             curve.getExtremum(i)
-
         self.parent.setDateFormat(format_date)
-        # for ax in self.parent.fig.get_axes():
-        #     for line in ax.get_lines():
-        #         curve = self.parent.dictofline[line]
-        #         i, j, step = self.computeStep((t0, tmax), curve)
-        #         line.set_data(np.array([curve.get_xdata()[p] for p in range(i, j, step)]),
-        #                       np.array([curve.get_ydata()[p] for p in range(i, j, step)]))
-        #         curve.getExtremum(i)
-
 
     def computeStep(self, timeRange, curve):
-        maxPt = 1500
+        maxPt = 2400
         t0, tmax = timeRange
         i = indFinder(t0, curve.get_xdata())
         j = indFinder(tmax, curve.get_xdata())

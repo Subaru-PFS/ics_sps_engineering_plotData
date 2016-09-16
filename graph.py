@@ -323,7 +323,6 @@ class Graph(FigureCanvas):
     def make_format(self, current, other):
         # current and other are axes
         def format_coord(x, y):
-
             display_coord = current.transData.transform((x, y))
             if not self.button_vcursor.isChecked():
                 inv = other.transData.inverted()

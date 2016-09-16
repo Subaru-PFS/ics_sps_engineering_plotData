@@ -22,10 +22,12 @@ class PlotWindow(QWidget):
         self.graph.toolbar = myNavigationToolbar(self.graph, self.parent)
         self.button_arrow = self.getButtonArrow()
         self.graph.button_vcursor = self.getVerticalCursor()
+        self.graph.smartScale = self.getSmartScale()
         self.getColors()
         self.getGroupbox()
         graph_layout.addWidget(self.graph)
         toolbar_layout.addWidget(self.graph.toolbar)
+        toolbar_layout.addWidget(self.graph.smartScale)
         toolbar_layout.addWidget(self.graph.button_vcursor)
         graph_layout.addLayout(toolbar_layout)
 
@@ -75,10 +77,12 @@ class PlotWindow(QWidget):
                                                                     dict["label_device"], curves["label"]),
                                                                 type="d%s_dt" % curves["type"],
                                                                 ylabel="d%s_dt (%s)" % (
-                                                                    curves["type"].capitalize(), str(combo_deriv.currentText())),
+                                                                    curves["type"].capitalize(),
+                                                                    str(combo_deriv.currentText())),
                                                                 unit=curves["unit"],
                                                                 tableName=device, keyword=keys,
-                                                                combo=combo_deriv, spinbox=integ_time, cmb_unit=combo_unit))
+                                                                combo=combo_deriv, spinbox=integ_time,
+                                                                cmb_unit=combo_unit))
                     grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
                     grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
                     grid.addWidget(combo_unit, i + len(sorted_curves), 2)
@@ -132,10 +136,8 @@ class PlotWindow(QWidget):
 
     def getComboUnit(self, unit):
         combo = QComboBox()
-        combo.addItems(["%s/%s"%(unit, t) for t in ["min", "hour"]])
+        combo.addItems(["%s/%s" % (unit, t) for t in ["min", "hour"]])
         return combo
-
-
 
     def getButtonArrow(self):
 
@@ -164,6 +166,11 @@ class PlotWindow(QWidget):
         button_vcursor.setStyleSheet("border: 0px")
         return button_vcursor
 
+    def getSmartScale(self):
+        smartScale = QCheckBox("Smart Scaling")
+        smartScale.setChecked(2)
+        smartScale.stateChanged.connect(self.graph.fig.canvas.draw)
+        return smartScale
     def cursorOn(self, button_vcursor):
         if button_vcursor.isChecked():
             if self.graph.ax.get_lines():
