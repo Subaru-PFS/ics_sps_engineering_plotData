@@ -168,7 +168,7 @@ class Graph(FigureCanvas):
 
             ax.set_yscale(scale_ax)
 
-    def updateLine(self, line, dates, values):
+    def updateLine(self, line, dates, values, dtime=3300):
         line.set_data(np.append(line.get_xdata(), dates), np.append(line.get_ydata(), values))
 
         if hasattr(self, "linev"):
@@ -178,7 +178,7 @@ class Graph(FigureCanvas):
         else:
             if not self.onDrawing:
                 self.onDrawing = True
-                timer = QTimer.singleShot(4000, self.updateLimit)
+                timer = QTimer.singleShot(dtime, self.updateLimit)
 
 
     def updateLimit(self, bool_draw=False):

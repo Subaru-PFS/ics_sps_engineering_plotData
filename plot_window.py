@@ -167,10 +167,12 @@ class PlotWindow(QWidget):
         return button_vcursor
 
     def getSmartScale(self):
-        smartScale = QCheckBox("Smart Scaling")
+        smartScale = QCheckBox("Optimize Performances")
         smartScale.setChecked(2)
         smartScale.stateChanged.connect(self.graph.fig.canvas.draw)
         return smartScale
+
+
     def cursorOn(self, button_vcursor):
         if button_vcursor.isChecked():
             if self.graph.ax.get_lines():
@@ -186,6 +188,16 @@ class PlotWindow(QWidget):
                 self.graph.linev.remove()
                 delattr(self.graph, "linev")
                 self.graph.fig.canvas.draw()
+
+    def goAwake(self):
+        for line, curve in self.graph.dictofline.iteritems():
+            if not curve.watcher.isActive():
+                curve.getData(getStarted=False, dtime=0.5)
+                curve.watcher.start()
+
+    def goSleep(self):
+        for line, curve in self.graph.dictofline.iteritems():
+            curve.watcher.stop()
 
     def clearLayout(self, layout, firstTimer=False):
         if firstTimer:

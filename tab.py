@@ -25,3 +25,9 @@ class Tab(QWidget):
     def delGraph(self, widget):
         widget.close()
         self.layout.removeWidget(widget)
+
+    def goActive(self, bool):
+        for i in range(self.layout.count()):
+            w = self.layout.itemAt(i).widget()
+            if w != self.button_add_graph:
+                w.goAwake() if bool else w.goSleep()

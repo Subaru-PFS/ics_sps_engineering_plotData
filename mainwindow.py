@@ -47,6 +47,7 @@ class MainWindow(QMainWindow):
         self.width = 1024
         self.height = 768
         self.center = [300, 300]
+        self.currWidget = 0
         self.title = "AIT-PFS Monitoring CU"
         self.resize(self.width, self.height)
         self.move(self.center[0], self.center[1])
@@ -76,6 +77,7 @@ class MainWindow(QMainWindow):
 
         self.tab_widget = QTabWidget()
         self.tab_widget.tabCloseRequested.connect(self.delTab)
+        self.tab_widget.currentChanged.connect(self.changeTab)
         self.tab_widget.setTabsClosable(True)
         self.getdockCalendar()
         self.getdockAlarm()
@@ -95,7 +97,7 @@ class MainWindow(QMainWindow):
         self.new_tab_action.triggered.connect(self.addTab)
         self.database_action.triggered.connect(self.calendar.show)
         self.about_action.triggered.connect(
-            partial(self.showInformation, "PlotData v0.6 working with lib_DataQuery v0.6\n\r made for PFS by ALF"))
+            partial(self.showInformation, "PlotData 0.8 working with lib_DataQuery 0.7\n\r made for PFS by ALF"))
 
         self.WindowsMenu = self.menubar.addMenu('&Windows')
         self.WindowsMenu.addAction(self.new_tab_action)
@@ -175,6 +177,15 @@ class MainWindow(QMainWindow):
             widget = Tab(self)
             self.tab_widget.addTab(widget, name)
             self.tab_widget.setCurrentWidget(widget)
+
+    def changeTab(self):
+        currWidget = self.tab_widget.currentWidget()
+        if self.currWidget != currWidget:
+            if type(self.currWidget)==Tab:
+                self.currWidget.goActive(False)
+            if type(currWidget)==Tab:
+                currWidget.goActive(True)
+            self.currWidget = currWidget
 
     def delTab(self, k):
         reply = QMessageBox.question(self, 'Message',

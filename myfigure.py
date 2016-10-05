@@ -4,6 +4,9 @@ import numpy as np
 from matplotlib.figure import Figure
 
 from transform import indFinder
+from transform import computeScale
+
+from datetime import datetime as dt
 
 
 class myFigure(Figure):
@@ -33,35 +36,24 @@ class myFigure(Figure):
 
     def setSmartScale(self):
         t0, tmax = self.parent.ax.get_xlim()
+        maxPt = 600
         if tmax - t0 > 7:
             format_date = "%d/%m/%Y"
         elif tmax - t0 > 1:
             format_date = "%a %H:%M"
         else:
             format_date = "%H:%M:%S"
+
+        step = (tmax - t0) / maxPt
+        t = np.arange(t0-step, tmax + step, step)
         for line, curve in self.parent.dictofline.iteritems():
-            i, j, step = self.computeStep((t0, tmax), curve)
-            if self.parent.smartScale.isChecked() and step > 1:
-                res_x = np.zeros((j - i) / step)
-                res_y = np.zeros((j - i) / step)
-                it = np.nditer(res_x, flags=['f_index'])
-                while not it.finished:
-                    ind = i + it.index * step + np.argmax(np.abs(
-                        curve.get_ydata()[i + it.index * step:i + (it.index + 1) * step] - np.mean(
-                            curve.get_ydata()[i + it.index * step:i + (it.index + 1) * step])))
-                    res_x[it.index], res_y[it.index] = curve.get_xdata()[ind], curve.get_ydata()[ind]
-                    it.iternext()
-                line.set_data(res_x, res_y)
+            if self.parent.smartScale.isChecked():
+                if curve.getLim() != (t0, tmax):
+                    line.set_data(computeScale(t, curve.get_data()))
+                    curve.setLim((t0, tmax))
             else:
                 line.set_data(curve.get_data())
-            curve.getExtremum(i)
-        self.parent.setDateFormat(format_date)
+                curve.setLim((0, 0))
+            curve.getExtremum(indFinder(t[0], curve.get_xdata()))
 
-    def computeStep(self, timeRange, curve):
-        maxPt = 2400
-        t0, tmax = timeRange
-        i = indFinder(t0, curve.get_xdata())
-        j = indFinder(tmax, curve.get_xdata())
-        step = int((j - i) / maxPt)
-        step = 1 if step == 0 else step
-        return i, j, step
+        self.parent.setDateFormat(format_date)

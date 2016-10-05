@@ -1,6 +1,7 @@
 from math import floor, ceil, log10
 import numpy as np
 
+
 def transformCoord2Log(display_coord, ax, ax2, inv=False):
     xmin, xmax = ax2.get_xlim()
     ymin, ymax = ax2.get_ylim()
@@ -53,3 +54,24 @@ def indFinder(t0, array):
     else:
         ind = dichot(t0, array)
     return ind
+
+
+def computeScale(t, (xdata, ydata)):
+    table_x = np.nan * np.ones(3 * len(t))
+    table_y = np.nan * np.ones(3 * len(t))
+    for i in range(len(t) - 1):
+        m, n = indFinder(t[i], xdata), indFinder(t[i + 1], xdata)
+        inter = ydata[m:n]
+        if len(inter) > 0:
+            mean = np.mean(inter)
+            ind_mean = m + np.argmin(np.abs(inter - mean))
+            ind_min = m + np.argmax(inter - mean)
+            ind_max = m + np.argmax(mean - inter)
+            res = sorted(
+                [(xdata[ind], ydata[ind]) for ind in
+                 [ind_mean, ind_min, ind_max]],
+                key=lambda x: x[0])
+            table_x[3 * i: 3 * i + 3] = [data[0] for data in res]
+            table_y[3 * i: 3 * i + 3] = [data[1] for data in res]
+
+    return table_x[~np.isnan(table_x)], table_y[~np.isnan(table_y)]

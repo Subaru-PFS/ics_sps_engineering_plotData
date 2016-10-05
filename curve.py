@@ -25,6 +25,7 @@ class Curve(Line2D):
         self.watcher.timeout.connect(self.getData)
         self.getIdBoundaries()
         self.setLineStyle()
+        self.currLim = (0,0)
 
     def getIdBoundaries(self):
         date_num = self.graph.numDate
@@ -43,7 +44,7 @@ class Curve(Line2D):
         else:
             self.getData(True)
 
-    def getData(self, getStarted=False):
+    def getData(self, getStarted=False, dtime=3300):
         if getStarted:
             return_values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, self.end_id)
             if type(return_values) is int:
@@ -70,7 +71,7 @@ class Curve(Line2D):
                 new_id, dates, values = return_values
                 dates, values = self.checkValues(dates, values)
                 self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                self.graph.updateLine(self.currLine, dates, values)
+                self.graph.updateLine(self.currLine, dates, values, dtime)
                 self.last_id = new_id
 
     def setLineStyle(self, marker=2.):
@@ -105,3 +106,10 @@ class Curve(Line2D):
 
     def getExtremum(self, i):
         self.currMin, self.currMax = np.min(self.get_ydata()[i:]), np.max(self.get_ydata()[i:])
+
+
+    def getLim(self):
+        return self.currLim
+
+    def setLim(self, lim):
+        self.currLim = lim

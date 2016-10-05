@@ -1,11 +1,13 @@
-from functools import partial
+import ConfigParser
 import datetime
 import numpy as np
-import ConfigParser
 import copy
-from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget, QSizePolicy, QDialogButtonBox, QDialog, QVBoxLayout, QCheckBox
-from PyQt5.QtCore import QTimer, QByteArray, Qt
+from functools import partial
+
+from PyQt5.QtCore import QTimer, QByteArray
 from PyQt5.QtGui import QMovie
+from PyQt5.QtWidgets import QGridLayout, QPushButton, QLabel, QMessageBox, QWidget, QDialog, QVBoxLayout, QCheckBox, \
+    QDialogButtonBox
 
 
 class alarmChecker(QWidget):
@@ -13,6 +15,7 @@ class alarmChecker(QWidget):
         super(alarmChecker, self).__init__()
         self.parent = parent
         self.networkError = False
+
         self.loadAlarm()
         self.getAlarm()
         self.getTimeout()
@@ -50,11 +53,9 @@ class alarmChecker(QWidget):
         self.label_acq = QPushButton("ACQUISITION")
         self.label_acq.clicked.connect(self.dialog.show)
         self.label_acq.setFixedHeight(50)
-        self.setColor("QPushButton", self.label_acq, "green")
-
         self.alarm_layout.addWidget(self.movie_screen, 0, 0, 1, 1)
         self.alarm_layout.addWidget(self.label_acq, 0, 1, 1, 2)
-
+        self.setColor("QPushButton", self.label_acq, "green")
 
         for i, device in enumerate(self.list_alarm):
             name = device["tableName"] + device["key"]
@@ -66,13 +67,13 @@ class alarmChecker(QWidget):
             setattr(self, "alarm_%s" % name, button)
 
         self.watcher_alarm = QTimer(self)
-        self.watcher_alarm.setInterval(5000)
-        self.watcher_alarm.timeout.connect(self.checkCriticalValue)
+        self.watcher_alarm.setInterval(7000)
+        self.watcher_alarm.timeout.connect(self.checkValueTimeout)
         self.watcher_alarm.start()
 
     def getTimeout(self):
-        self.device_dict = copy.deepcopy(self.parent.device_dict)
         self.timeout_limit = 90
+        self.device_dict = copy.deepcopy(self.parent.device_dict)
         self.list_timeout = [key for key, value in self.parent.device_dict.iteritems()]
         self.last_date = {}
         self.last_time = {}
@@ -80,14 +81,15 @@ class alarmChecker(QWidget):
             self.last_date[key] = 0
             self.last_time[key] = datetime.datetime.now()
 
-    def getTimer(self):
+    def checkValueTimeout(self):
+        self.checkCriticalValue()
+        self.checkTimeout()
+
+
+    def getTimer(self, i=0):
 
         watcher_timeout = QTimer(self)
-        watcher_timeout.singleShot(2000, partial(self.showTimeout, 0))
-        self.checker_timeout = QTimer(self)
-        self.checker_timeout.setInterval(15000)
-        self.checker_timeout.timeout.connect(self.checkTimeout)
-        self.checker_timeout.start()
+        watcher_timeout.singleShot(3000, partial(self.showTimeout, i))
 
     def showTimeout(self, i):
         for timeout in self.timeout_ack:
@@ -109,11 +111,10 @@ class alarmChecker(QWidget):
         else:
             self.label_acq.setText("SERVER LOST")
             self.setColor("QPushButton", self.label_acq, "orange")
-        watcher_timeout = QTimer(self)
-        watcher_timeout.singleShot(2000, partial(self.showTimeout, i))
+        self.getTimer(i)
 
     def checkTimeout(self):
-        for key, value in self.device_dict.iteritems():
+        for key, value in self.parent.device_dict.iteritems():
             return_values = self.parent.db.getLastData(key, "id")
             if return_values == -5:
                 self.networkError = True
@@ -122,6 +123,7 @@ class alarmChecker(QWidget):
             else:
                 date, id = return_values
                 self.networkError = False
+
                 if date != self.last_date[key]:
                     if self.last_date[key] != 0:
                         if key in self.list_timeout:
@@ -138,7 +140,6 @@ class alarmChecker(QWidget):
         for device in self.list_alarm:
             name = device["tableName"] + device["key"]
             return_values = self.parent.db.getLastData(device["tableName"], device["key"])
-
             if type(return_values) is not int:
                 date, [val] = return_values
                 fmt = "{:.5e}" if len(str(val)) > 8 else "{:.2f}"
@@ -163,18 +164,6 @@ class alarmChecker(QWidget):
         else:
             widget.setStyleSheet("%s { background-color : %s; color : white; font: 15pt;}" % (type, color))
 
-    def ackTimeout(self, checkbox):
-        if checkbox.isChecked():
-            if str(checkbox.text()) in self.timeout_ack:
-                self.timeout_ack.remove(str(checkbox.text()))
-        else:
-            self.timeout_ack.append(str(checkbox.text()))
-
-
-    def showWarning(self, attr):
-        reply = QMessageBox.warning(self, 'Message', str(getattr(self, attr)), QMessageBox.Ok)
-
-
     def dialogTimeout(self):
         d = QDialog(self)
         d.setFixedWidth(450)
@@ -196,3 +185,13 @@ class alarmChecker(QWidget):
         vbox.addWidget(buttonBox)
         d.setLayout(vbox)
         return d
+
+    def ackTimeout(self, checkbox):
+        if checkbox.isChecked():
+            if str(checkbox.text()) in self.timeout_ack:
+                self.timeout_ack.remove(str(checkbox.text()))
+        else:
+            self.timeout_ack.append(str(checkbox.text()))
+
+    def showWarning(self, attr):
+        reply = QMessageBox.warning(self, 'Message', str(getattr(self, attr)), QMessageBox.Ok)
