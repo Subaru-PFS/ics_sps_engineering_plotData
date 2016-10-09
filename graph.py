@@ -263,7 +263,7 @@ class Graph(FigureCanvas):
                 for lines in ax.get_lines():
                     if self.isinDict(lines):
                         t0, tmax = self.ax.get_xlim()
-                        ind = indFinder(tmax, lines.get_xdata())
+                        ind = indFinder(lines.get_xdata(), tmax)
                         try:
                             new_coord = ax.transData.transform((lines.get_xdata()[ind], lines.get_ydata()[ind]))
                         except TypeError:
@@ -380,7 +380,7 @@ class Graph(FigureCanvas):
                 for lines in ax.get_lines():
                     if self.isinDict(lines):
                         try:
-                            ind = indFinder(time, lines.get_xdata())
+                            ind = indFinder(lines.get_xdata(), time)
                         except RuntimeError:
                             self.exceptCursor = True
                         except IndexError:
@@ -430,10 +430,10 @@ class Graph(FigureCanvas):
             for ax in self.fig.get_axes():
                 for lines in ax.get_lines():
                     if self.isinDict(lines):
-                        ind_t0 = indFinder(t0, lines.get_xdata())
-                        ind_tmax = indFinder(tmax, lines.get_xdata())
+                        ind_t0 = indFinder(lines.get_xdata(), t0)
+                        ind_tmax = indFinder(lines.get_xdata(), tmax)
                         step = 1 + (ind_tmax - ind_t0) / 400
-                        ind = indFinder(time_ax, lines.get_xdata())
+                        ind = indFinder(lines.get_xdata(), time_ax)
 
                         for i in range(ind - step, ind + step):
                             if i >= 0 and i < len(lines.get_xdata()):

@@ -36,7 +36,7 @@ class myFigure(Figure):
 
     def setSmartScale(self):
         t0, tmax = self.parent.ax.get_xlim()
-        maxPt = 600
+        maxPt = 700
         if tmax - t0 > 7:
             format_date = "%d/%m/%Y"
         elif tmax - t0 > 1:
@@ -54,6 +54,6 @@ class myFigure(Figure):
             else:
                 line.set_data(curve.get_data())
                 curve.setLim((0, 0))
-            curve.getExtremum(indFinder(t[0], curve.get_xdata()))
+            curve.getExtremum(indFinder(curve.get_xdata(), t[0]))
 
         self.parent.setDateFormat(format_date)

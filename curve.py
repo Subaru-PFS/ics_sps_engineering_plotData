@@ -87,22 +87,13 @@ class Curve(Line2D):
         self.currLine = line
 
     def findAcceptableRange(self):
-        rangeVals = {"temperature_k": [15, 330], "temperature_c": [-10, 50], "pressure": [1e-9, 1e4], "power": [0, 400]}
-        for types, range in rangeVals.iteritems():
-            if types in self.type:
-                self.minVal = rangeVals[types][0]
-                self.maxVal = rangeVals[types][1]
+        rangeVals = {"temperature_k": (15, 340), "temperature_c": (-10, 50), "pressure": (1e-9, 1e4), "power": (0, 400)}
+        self.boundaries = rangeVals[self.type] if self.type in rangeVals.iterkeys() else (-np.inf, np.inf)
 
     def checkValues(self, date, value):
-        if hasattr(self, "minVal"):
-            i = 0
-            while i < len(value):
-                if not self.minVal <= value[i] <= self.maxVal:
-                    date = np.delete(date, i)
-                    value = np.delete(value, i)
-                else:
-                    i += 1
-        return date, value
+        value = value[:,0]
+        ind = np.logical_and(value >= self.boundaries[0], value <= self.boundaries[1])
+        return date[ind], value[ind]
 
     def getExtremum(self, i):
         self.currMin, self.currMax = np.min(self.get_ydata()[i:]), np.max(self.get_ydata()[i:])
