@@ -12,7 +12,7 @@ class Derivate(Curve):
         self.coeff = Derivate.enum[cmb_unit.currentIndex()]
         super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo)
 
-    def getData(self, getStarted=False):
+    def getData(self, getStarted=False, dtime=3300):
 
         if getStarted:
             return_values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, self.end_id,
@@ -42,7 +42,7 @@ class Derivate(Curve):
                 if slope is not None:
                     new_id, dates, values = slope
                     self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                    self.graph.updateLine(self.currLine, dates, values)
+                    self.graph.updateLine(self.currLine, dates, values, dtime)
                     self.last_id = new_id
 
     def computeSlope(self, all_id, dates, values):
