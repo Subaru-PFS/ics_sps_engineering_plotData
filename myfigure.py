@@ -54,6 +54,5 @@ class myFigure(Figure):
             else:
                 line.set_data(curve.get_data())
                 curve.setLim((0, 0))
-            curve.getExtremum(indFinder(curve.get_xdata(), t[0]))
 
         self.parent.setDateFormat(format_date)

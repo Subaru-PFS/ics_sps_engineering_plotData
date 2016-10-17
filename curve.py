@@ -25,7 +25,7 @@ class Curve(Line2D):
         self.watcher.timeout.connect(self.getData)
         self.getIdBoundaries()
         self.setLineStyle()
-        self.currLim = (0,0)
+        self.currLim = (0, 0)
 
     def getIdBoundaries(self):
         date_num = self.graph.numDate
@@ -54,6 +54,7 @@ class Curve(Line2D):
                 dates, values = self.checkValues(dates, values)
                 if values.size:
                     self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.getExtremum(values, firstTime=True)
                     self.last_id = new_id
                     if self.dataset == "real_time":
                         self.watcher.start()
@@ -71,6 +72,7 @@ class Curve(Line2D):
                 new_id, dates, values = return_values
                 dates, values = self.checkValues(dates, values)
                 self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                self.getExtremum(values)
                 self.graph.updateLine(self.currLine, dates, values, dtime)
                 self.last_id = new_id
 
@@ -87,17 +89,20 @@ class Curve(Line2D):
         self.currLine = line
 
     def findAcceptableRange(self):
-        rangeVals = {"temperature_k": (15, 340), "temperature_c": (-10, 50), "pressure_torr": (1e-10, 1e4), "power": (0, 400)}
+        rangeVals = {"temperature_k": (15, 340), "temperature_kw": (15, 340), "temperature_c": (-10, 50),
+                     "pressure_torr": (1e-10, 1e4), "power": (0, 400)}
         self.boundaries = rangeVals[self.type] if self.type in rangeVals.iterkeys() else (-np.inf, np.inf)
 
     def checkValues(self, date, value):
-        value = value[:,0]
+        value = value[:, 0]
         ind = np.logical_and(value >= self.boundaries[0], value <= self.boundaries[1])
         return date[ind], value[ind]
 
-    def getExtremum(self, i):
-        self.currMin, self.currMax = np.min(self.get_ydata()[i:]), np.max(self.get_ydata()[i:])
-
+    def getExtremum(self, values, firstTime=False):
+        if firstTime:
+            self.currMin, self.currMax = np.min(values), np.max(values)
+        else:
+            self.currMin, self.currMax = np.min([self.currMin, np.min(values)]), np.max([self.currMax, np.max(values)])
 
     def getLim(self):
         return self.currLim

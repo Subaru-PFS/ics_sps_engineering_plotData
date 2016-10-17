@@ -231,10 +231,8 @@ class Graph(FigureCanvas):
 
         if bool_draw:
             self.fig.canvas.draw()
-
         else:
             self.fig.canvas.blit(self.fig.bbox)
-
         self.onDrawing = False
 
     def updateStyle(self):
