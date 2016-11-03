@@ -129,7 +129,7 @@ class PlotWindow(QWidget):
 
     def getSpinBox(self):
         integ_time = QDoubleSpinBox()
-        integ_time.setMaximum(10000)
+        integ_time.setRange(15, 86400)
         integ_time.setValue(600)
         integ_time.setFixedWidth(80)
         return integ_time

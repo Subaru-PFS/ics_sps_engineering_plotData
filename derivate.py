@@ -19,7 +19,7 @@ class Derivate(Curve):
                                                           False)
             if type(return_values) is int:
                 self.parent.parent.showError(return_values)
-            elif self.integ_time > 15:
+            else:
                 slope = self.computeSlope(*return_values)
                 if slope is not None:
                     new_id, dates, values = slope
@@ -28,8 +28,7 @@ class Derivate(Curve):
                     self.last_id = new_id
                     if self.dataset == "real_time":
                         self.watcher.start()
-            else:
-                self.last_id = 0
+
         else:
             return_values = self.parent.parent.db.getData(self.tableName, self.keyword, self.last_id, self.end_id,
                                                           False)
