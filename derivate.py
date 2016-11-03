@@ -24,6 +24,7 @@ class Derivate(Curve):
                 if slope is not None:
                     new_id, dates, values = slope
                     self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.getExtremum(values, firstTime=True)
                     self.last_id = new_id
                     if self.dataset == "real_time":
                         self.watcher.start()
@@ -42,6 +43,7 @@ class Derivate(Curve):
                 if slope is not None:
                     new_id, dates, values = slope
                     self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.getExtremum(values)
                     self.graph.updateLine(self.currLine, dates, values, dtime)
                     self.last_id = new_id
 
