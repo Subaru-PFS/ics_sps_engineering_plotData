@@ -23,6 +23,7 @@ from math import floor, log10
 rcParams.update({'figure.autolayout': True})
 plt.style.use('ggplot')
 
+
 class Graph(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
 
@@ -180,7 +181,6 @@ class Graph(FigureCanvas):
                 self.onDrawing = True
                 timer = QTimer.singleShot(dtime, self.updateLimit)
 
-
     def updateLimit(self, bool_draw=False):
         if not bool_draw:
             self.fig.canvas.restore_region(self.background)
@@ -193,8 +193,8 @@ class Graph(FigureCanvas):
             for line in ax.lines:
                 if self.isinDict(line):
                     curve = self.dictofline[line]
-                    min_value, max_value, max_time = curve.currMin, curve.currMax, curve.get_xdata()[-1]
-                    list_tmax.append(max_time)
+                    min_value, max_value = curve.currExtremum
+                    list_tmax.append(curve.get_xdata()[-1])
                     if ax.get_yscale() == "log":
                         min_values.append(10 ** (floor(log10(min_value))))
                         max_values.append(10 ** (floor(log10(max_value)) + 1))

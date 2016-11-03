@@ -2,6 +2,8 @@ import numpy as np
 from PyQt5.QtCore import QTimer
 from matplotlib.lines import Line2D
 
+from transform import indFinder
+
 
 class Curve(Line2D):
     def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo):
@@ -100,12 +102,15 @@ class Curve(Line2D):
 
     def getExtremum(self, values, firstTime=False):
         if firstTime:
-            self.currMin, self.currMax = np.min(values), np.max(values)
+            self.currExtremum = np.min(values), np.max(values)
         else:
-            self.currMin, self.currMax = np.min([self.currMin, np.min(values)]), np.max([self.currMax, np.max(values)])
+            currMin, currMax = self.currExtremum
+            self.currExtremum = np.min([currMin, np.min(values)]), np.max([currMax, np.max(values)])
 
     def getLim(self):
         return self.currLim
 
-    def setLim(self, lim):
-        self.currLim = lim
+    def setLim(self, (t0, tmax)):
+        self.currLim = t0, tmax
+        ind = indFinder(self.get_xdata(), t0)
+        self.currExtremum = np.min(self.get_ydata()[ind:]), np.max(self.get_ydata()[ind:])

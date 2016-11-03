@@ -53,6 +53,6 @@ class myFigure(Figure):
                     curve.setLim((t0, tmax))
             else:
                 line.set_data(curve.get_data())
-                curve.setLim((0, 0))
+                curve.setLim((t0, 0))
 
         self.parent.setDateFormat(format_date)
