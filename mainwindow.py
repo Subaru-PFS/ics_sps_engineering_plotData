@@ -145,6 +145,7 @@ class MainWindow(QMainWindow):
                 config.readfp(open(path + res[0][0]))
 
         self.device_dict = {}
+
         for a in config.sections():
             if a != 'config_date':
                 inter = {}
@@ -163,6 +164,7 @@ class MainWindow(QMainWindow):
                     self.device_dict[a][keys]["label"] = labels
                     self.device_dict[a][keys]["unit"] = units
                     self.device_dict[a][keys]["ylabel"] = ylabels
+
 
     def setNewConfig(self):
         self.readCfg(self.config_path)

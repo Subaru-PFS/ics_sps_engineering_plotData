@@ -15,10 +15,10 @@ class alarmChecker(QWidget):
         super(alarmChecker, self).__init__()
         self.parent = parent
         self.networkError = False
+        self.getTimeout()
 
         self.loadAlarm()
         self.getAlarm()
-        self.getTimeout()
         self.getTimer()
         self.setLayout(self.alarm_layout)
 
@@ -74,7 +74,8 @@ class alarmChecker(QWidget):
     def getTimeout(self):
         self.timeout_limit = 90
         self.device_dict = copy.deepcopy(self.parent.device_dict)
-        self.list_timeout = [key for key, value in self.parent.device_dict.iteritems()]
+
+        self.list_timeout = [key for key, value in self.device_dict.iteritems()]
         self.last_date = {}
         self.last_time = {}
         for key, value in self.device_dict.iteritems():
@@ -84,7 +85,6 @@ class alarmChecker(QWidget):
     def checkValueTimeout(self):
         self.checkCriticalValue()
         self.checkTimeout()
-
 
     def getTimer(self, i=0):
 
@@ -114,7 +114,7 @@ class alarmChecker(QWidget):
         self.getTimer(i)
 
     def checkTimeout(self):
-        for key, value in self.parent.device_dict.iteritems():
+        for key, value in self.device_dict.iteritems():
             return_values = self.parent.db.getLastData(key, "id")
             if return_values == -5:
                 self.networkError = True
@@ -173,7 +173,7 @@ class alarmChecker(QWidget):
         grid = QGridLayout()
         grid.setSpacing(20)
 
-        for i, (key, value) in enumerate(self.parent.device_dict.iteritems()):
+        for i, (key, value) in enumerate(self.device_dict.iteritems()):
             checkbox = QCheckBox(key)
             checkbox.stateChanged.connect(partial(self.ackTimeout, checkbox))
             checkbox.setCheckState(2)
