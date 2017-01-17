@@ -73,10 +73,11 @@ class Curve(Line2D):
             else:
                 new_id, dates, values = return_values
                 dates, values = self.checkValues(dates, values)
-                self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
-                self.getExtremum(values)
-                self.graph.updateLine(self.currLine, dates, values, dtime)
-                self.last_id = new_id
+                if values.size:
+                    self.set_data(np.append(self.get_xdata(), dates), np.append(self.get_ydata(), values))
+                    self.getExtremum(values)
+                    self.graph.updateLine(self.currLine, dates, values, dtime)
+                    self.last_id = new_id
 
     def setLineStyle(self, marker=2.):
         color = self.graph.color_tab[self.combo.currentIndex()]

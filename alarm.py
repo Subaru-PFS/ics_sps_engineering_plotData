@@ -31,7 +31,6 @@ class alarmChecker(QWidget):
             for b in config.options(a):
                 dict[b] = config.get(a, b)
             self.list_alarm.append(dict)
-            print self.list_alarm
 
     def getAlarm(self):
 
