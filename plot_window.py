@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QGridLayout, QPushButton, QWidget, QVBoxLayout, QHBo
 
 from graph import Graph
 from mynavigationtoolbar import myNavigationToolbar
+from myqcheckbox import myQCheckBox
 
 
 class PlotWindow(QWidget):
@@ -54,9 +55,10 @@ class PlotWindow(QWidget):
             sorted_curves = sorted(dict.items(), key=operator.itemgetter(1))
             for i, (keys, curves) in enumerate(sorted_curves):
                 if keys != "label_device":
-                    combo = self.getComboColor(index, curveName="%s_%s" % (dict["label_device"], curves["label"]))
+                    curveName = "%s_%s" % (dict["label_device"], curves["label"])
+                    combo = self.getComboColor(index, curveName=curveName)
 
-                    checkbox = QCheckBox(curves["label"], self)
+                    checkbox = myQCheckBox(curves["label"], curveName, self)
                     checkbox.stateChanged.connect(partial(self.graph.addordelCurve, checkbox,
                                                           label="%s_%s" % (dict["label_device"], curves["label"]),
                                                           type=curves["type"], ylabel=curves["ylabel"],
@@ -67,21 +69,22 @@ class PlotWindow(QWidget):
                     grid.addWidget(checkbox, i, 1)
                     grid.addWidget(combo, i, 0)
                     index += 1
-                    combo_deriv = self.getComboColor(index,
-                                                     curveName="%s_d%s_dt" % (dict["label_device"], curves["label"]))
-                    checkbox_deriv = QCheckBox("d%s_dt" % curves["label"], self)
+                    curveName = "%s_d%s_dt" % (dict["label_device"], curves["label"])
+                    combo_deriv = self.getComboColor(index, curveName=curveName)
+                    checkbox_deriv = myQCheckBox("d%s_dt" % curves["label"], curveName, self)
                     integ_time = self.getSpinBox()
                     combo_unit = self.getComboUnit(curves["unit"])
                     checkbox_deriv.stateChanged.connect(partial(self.graph.addordelCurve, checkbox_deriv,
-                                                                label="%s_d%s_dt" % (
-                                                                    dict["label_device"], curves["label"]),
+                                                                label="%s_d%s_dt" % (dict["label_device"],
+                                                                                     curves["label"]),
                                                                 type="d%s_dt" % curves["type"],
-                                                                ylabel="d%s_dt (%s)" % (
-                                                                    curves["type"].capitalize(),
-                                                                    str(combo_deriv.currentText())),
+                                                                ylabel="d%s_dt (%s)" % (curves["type"].capitalize(),
+                                                                                        str(combo_deriv.currentText())),
                                                                 unit=curves["unit"],
-                                                                tableName=device, keyword=keys,
-                                                                combo=combo_deriv, spinbox=integ_time,
+                                                                tableName=device,
+                                                                keyword=keys,
+                                                                combo=combo_deriv,
+                                                                spinbox=integ_time,
                                                                 cmb_unit=combo_unit))
                     grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
                     grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
@@ -90,6 +93,7 @@ class PlotWindow(QWidget):
             self.groupbox_layout.addWidget(groupBox)
 
         self.button_del_graph = QPushButton("Delete Graph")
+
         self.button_del_graph.clicked.connect(partial(self.clearLayout, self.layout, True))
         self.groupbox_layout.addWidget(self.button_del_graph)
         self.groupbox_widget.setLayout(self.groupbox_layout)
@@ -171,7 +175,6 @@ class PlotWindow(QWidget):
         smartScale.setChecked(2)
         smartScale.stateChanged.connect(self.graph.fig.canvas.draw)
         return smartScale
-
 
     def cursorOn(self, button_vcursor):
         if button_vcursor.isChecked():

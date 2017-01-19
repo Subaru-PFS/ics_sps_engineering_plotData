@@ -14,6 +14,7 @@ class Curve(Line2D):
         self.label = label
         self.type = type
         self.ylabel = ylabel
+        self.yscale = "linear" if "pressure" not in type else 'log'
         self.unit = unit
         self.tableName = tableName
         self.keyword = keyword

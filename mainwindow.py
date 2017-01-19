@@ -2,11 +2,12 @@
 # encoding: utf-8
 
 
+import pickle
+
 import matplotlib
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QAction, QInputDialog, \
-    QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QTabWidget, QAction, QInputDialog, QMessageBox, QGroupBox, QFileDialog
 
 from myqdockwidget import myQDockWidget
 
@@ -18,6 +19,7 @@ from ics_sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 import ConfigParser
 import os
 from mycalendar import Calendar
+from myqcheckbox import myQCheckBox
 from alarm import alarmChecker
 from tab import Tab
 from matplotlib import rcParams
@@ -31,8 +33,8 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.os_path = os_path
-        self.config_path = os_path.split('ics_sps_engineering_plotData')[
-                               0] + 'ics_sps_engineering_Lib_dataQuery/config/'
+        self.config_path = os_path.split('ics_sps_engineering_plotData')[0] + \
+                           'ics_sps_engineering_Lib_dataQuery/config/'
         self.path_img = self.os_path + "/img/"
 
         self.readCfg(self.config_path)
@@ -91,16 +93,25 @@ class MainWindow(QMainWindow):
         self.database_action = QAction('Database', self)
         self.curves_action = QAction('Update Configuration', self)
         self.new_tab_action = QAction('Open a new tab', self)
+        self.load_layout_action = QAction('Load Layout', self)
+        self.save_layout_action = QAction('Save current Layout', self)
+
         self.about_action = QAction('About', self)
 
         self.curves_action.triggered.connect(self.setNewConfig)
-        self.new_tab_action.triggered.connect(self.addTab)
+        self.new_tab_action.triggered.connect(self.dialogTab)
         self.database_action.triggered.connect(self.calendar.show)
         self.about_action.triggered.connect(
             partial(self.showInformation, "PlotData 0.8 working with lib_DataQuery 0.7\n\r made for PFS by ALF"))
 
+        self.load_layout_action.triggered.connect(self.loadLayout)
+        self.save_layout_action.triggered.connect(self.saveLayout)
+
         self.WindowsMenu = self.menubar.addMenu('&Windows')
         self.WindowsMenu.addAction(self.new_tab_action)
+        self.WindowsMenu.addAction(self.load_layout_action)
+        self.WindowsMenu.addAction(self.save_layout_action)
+
         self.configurationMenu = self.menubar.addMenu('&Configuration')
         self.configurationMenu.addAction(self.database_action)
         self.configurationMenu.addAction(self.curves_action)
@@ -165,27 +176,29 @@ class MainWindow(QMainWindow):
                     self.device_dict[a][keys]["unit"] = units
                     self.device_dict[a][keys]["ylabel"] = ylabels
 
-
     def setNewConfig(self):
         self.readCfg(self.config_path)
         self.qdockalarm_widget.getTimeout()
         self.showInformation("New configuration loaded")
 
-    def addTab(self):
+    def dialogTab(self):
 
         text, ok = QInputDialog.getText(self, 'Name your tab', 'Name')
         if ok:
-            name = str(text)
-            widget = Tab(self)
-            self.tab_widget.addTab(widget, name)
-            self.tab_widget.setCurrentWidget(widget)
+            self.addTab(name=str(text))
+
+    def addTab(self, name):
+        widget = Tab(self)
+        self.tab_widget.addTab(widget, name)
+        self.tab_widget.setCurrentWidget(widget)
+        return widget
 
     def changeTab(self):
         currWidget = self.tab_widget.currentWidget()
         if self.currWidget != currWidget:
-            if type(self.currWidget)==Tab:
+            if type(self.currWidget) == Tab:
                 self.currWidget.goActive(False)
-            if type(currWidget)==Tab:
+            if type(currWidget) == Tab:
                 currWidget.goActive(True)
             self.currWidget = currWidget
 
@@ -195,6 +208,48 @@ class MainWindow(QMainWindow):
                                      QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.tab_widget.removeTab(k)
+
+    def loadLayout(self):
+        (fname, fmt) = QFileDialog.getOpenFileName(self, 'Open file',
+                                                   self.os_path.split('ics_sps_engineering_plotData')[0])
+        if fname:
+            with open(fname, 'r') as fichier:
+                unpickler = pickle.Unpickler(fichier)
+                customLayout = unpickler.load()
+
+            for savedTab in customLayout:
+                tab = self.addTab(savedTab["name"])
+                for graph in savedTab["graphs"]:
+                    plotWindow = tab.addGraph()
+                    for curveName in graph:
+                        for groupbox in self.getListWidget(plotWindow.groupbox_layout):
+                            if type(groupbox) == QGroupBox:
+                                for widget in self.getListWidget(groupbox.layout()):
+                                    if type(widget) == myQCheckBox and curveName == widget.curveName:
+                                        widget.setCheckState(2)
+
+    def saveLayout(self):
+
+        customLayout = []
+        for i in range(self.tab_widget.count()):
+            name = self.tab_widget.tabText(i)
+            dict = {"name": str(name)}
+            plotWindows = self.tab_widget.widget(i).getPlotWindow()
+            inter = []
+            for plotWindow in plotWindows:
+                inter.append([curve.label for curve in plotWindow.graph.dictofline.itervalues()])
+            dict["graphs"] = inter
+            customLayout.append(dict)
+
+        (fname, fmt) = QFileDialog.getSaveFileName(self, 'Save file',
+                                                   self.os_path.split('ics_sps_engineering_plotData')[0])
+        if fname:
+            with open(fname, 'w') as fichier:
+                pickler = pickle.Pickler(fichier)
+                pickler.dump(customLayout)
+
+    def getListWidget(self, layout):
+        return [layout.itemAt(i).widget() for i in range(layout.count())]
 
     def showError(self, nb_error):
         error_code = {-1: "The database is unreachable, check your network and your configuration",

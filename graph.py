@@ -6,14 +6,14 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib import ticker
+from matplotlib import ticker,  rcParams
 import numpy as np
 from functools import partial
 from myfigure import myFigure
 from matplotlib.dates import DateFormatter
 from matplotlib.dates import num2date
 from PyQt5.QtWidgets import QSizePolicy, QLabel
-from matplotlib import rcParams
+from collections import OrderedDict
 from curve import Curve
 from derivate import Derivate
 from PyQt5.QtCore import QTimer
@@ -39,7 +39,7 @@ class Graph(FigureCanvas):
         self.numDate = self.parent.parent.getNumdate()
         self.rdy_check = False
         self.onDrawing = False
-        self.dictofline = {}
+        self.dictofline = OrderedDict({})
         self.ax = self.fig.add_subplot(111)
         self.ax.xaxis_date()
         # self.ax.set_autoscale_on(True)
@@ -52,6 +52,7 @@ class Graph(FigureCanvas):
 
     def addordelCurve(self, checkbox, label, type, ylabel, unit, tableName, keyword, combo, spinbox=None,
                       cmb_unit=None):
+
         if not self.rdy_check:
             if checkbox.isChecked():
                 if self.addCurve(label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
@@ -69,6 +70,7 @@ class Graph(FigureCanvas):
             self.rdy_check = False
 
     def addCurve(self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
+
         ax = self.getAxe(type)
         if ax is not None:
             if not spinbox:
@@ -78,6 +80,7 @@ class Graph(FigureCanvas):
                                      cmb_unit)
             if new_curve.last_id > 0:
                 line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-', label=label)
+                ax.set_yscale(new_curve.yscale, basey=10)
                 self.dictofline[line] = new_curve
                 new_curve.setLine(line)
                 self.figure.canvas.draw()
@@ -95,32 +98,22 @@ class Graph(FigureCanvas):
                 if line.get_label() == label:
                     self.dictofline.pop(line, None)
                     ax.lines.pop(i)
-                    save_ax1, save_ax2, scale_ax1, scale_ax2 = self.orderAxe()
+                    save_ax1, save_ax2 = self.orderAxe()
                     self.clearGraph()
-                    self.rebuild(save_ax1, save_ax2, scale_ax1, scale_ax2)
+                    self.rebuild(save_ax1, save_ax2)
                     self.figure.canvas.draw()
                     del line
                     return 1
         return 0
 
     def getAxe(self, type):
+
         if 'pressure' in type and type[-2:] != "dt":
-            if self.button_vcursor.isChecked():
-                self.button_vcursor.click()
-            if self.ax.get_lines():
-                if self.dictofline[self.ax.get_lines()[0]].type != type:
-                    if not self.ax2.get_lines():
-                        for lines in self.ax.get_lines():
-                            self.ax2.add_line(lines)
-                            self.ax.lines.pop(0)
-                        save_ax1, save_ax2 = self.ax.get_lines(), self.ax2.get_lines()
-                        self.clearGraph()
-                        self.rebuild(save_ax1, save_ax2)
-                        self.ax.set_yscale('log', basey=10)
-                    else:
-                        return None
-            self.ax.set_yscale('log', basey=10)
-            return self.ax
+            if self.ax.get_lines() and not self.ax2.get_lines() \
+                    and not self.dictofline[self.ax.get_lines()[0]].type == type:
+                save_ax1, save_ax2 = self.orderAxe()
+                self.clearGraph()
+                self.rebuild([], save_ax1)
 
         for i, ax in enumerate(self.fig.get_axes()):
             if ax.get_lines():
@@ -136,16 +129,21 @@ class Graph(FigureCanvas):
                 return ax
 
     def orderAxe(self):
-        if not self.ax.get_lines():
-            for l in self.ax2.get_lines():
-                self.ax.add_line(l)
-                self.ax2.lines.pop(0)
-            self.ax.set_yscale("linear")
-        return self.ax.get_lines(), self.ax2.get_lines(), self.ax.get_yscale(), self.ax2.get_yscale()
+
+        ax_curve = [self.dictofline[line] for line in self.ax.get_lines() if self.isinDict(line)]
+        ax2_curve = [self.dictofline[line] for line in self.ax2.get_lines() if self.isinDict(line)]
+        if not ax_curve:
+            ax_curve = ax2_curve
+            ax2_curve = []
+
+        return ax_curve, ax2_curve
 
     def clearGraph(self):
         while self.fig.get_axes():
             ax = self.fig.get_axes()[0]
+            lines = ax.get_lines()
+            for i in range(len(lines)):
+                lines.pop(0).remove()
             ax.cla()
             self.fig.delaxes(ax)
             del ax
@@ -155,19 +153,18 @@ class Graph(FigureCanvas):
         self.ax2 = self.ax.twinx()
         self.ax2.format_coord = self.make_format(self.ax2, self.ax)
 
-    def rebuild(self, save_ax1, save_ax2, scale_ax1="linear", scale_ax2="linear"):
+    def rebuild(self, save_ax1, save_ax2):
 
-        for ax, save_ax, scale_ax in zip(self.fig.get_axes(), [save_ax1, save_ax2], [scale_ax1, scale_ax2]):
-            for lines in save_ax:
-                if self.isinDict(lines):
-                    line, = ax.plot_date(self.dictofline[lines].get_xdata(), self.dictofline[lines].get_ydata(), '-',
-                                         label=self.dictofline[lines].label)
-                    self.dictofline[line] = self.dictofline[lines]
-                    self.dictofline[line].setLine(line)
-                    self.dictofline.pop(lines, None)
-                    del lines
+        for ax, save_ax in zip(self.fig.get_axes(), [save_ax1, save_ax2]):
+            for curve in save_ax:
+                old_line = curve.currLine
+                line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-', label=curve.label)
+                self.dictofline[line] = curve
+                self.dictofline.pop(old_line, None)
+                self.dictofline[line].setLine(line)
+                del old_line
 
-            ax.set_yscale(scale_ax)
+                ax.set_yscale(curve.yscale, basey=10)
 
     def updateLine(self, line, dates, values, dtime=3300):
         line.set_data(np.append(line.get_xdata(), dates), np.append(line.get_ydata(), values))
@@ -301,18 +298,18 @@ class Graph(FigureCanvas):
 
     def setColorLine(self, curveName):
         for ax in self.fig.get_axes():
-            for lines in ax.get_lines():
-                if lines.get_label() == curveName:
-                    self.setLineStyle(lines)
+            for line in ax.get_lines():
+                if line.get_label() == curveName:
+                    self.setLineStyle(line)
                     self.figure.canvas.draw()
 
-    def setLineStyle(self, line, marker=2.):
+    def setLineStyle(self, line, color=None, marker=2.):
         self.dictofline[line].setLineStyle()
-        color = self.dictofline[line].color
+        color = self.dictofline[line].color if color is None else color
         line.set_color(color)
-        # line.set_markerfacecolor(color)
-        # line.set_markeredgecolor(color)
-        # line.set_markersize(marker)
+        #line.set_markerfacecolor(color)
+        #line.set_markeredgecolor(color)
+        #line.set_markersize(marker)
 
     def setDateFormat(self, format_date):
         self.ax.xaxis.set_major_formatter(DateFormatter(format_date))

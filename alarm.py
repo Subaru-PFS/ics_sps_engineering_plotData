@@ -154,7 +154,7 @@ class alarmChecker(QWidget):
                 setattr(self, "msg_%s" % name, msg)
 
             else:
-                print "code error : %i" % val
+                print "code error : %i" % return_values
 
     def setColor(self, type, widget, color):
         if type == "QLabel":

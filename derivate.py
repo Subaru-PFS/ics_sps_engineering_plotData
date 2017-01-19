@@ -11,6 +11,7 @@ class Derivate(Curve):
         self.integ_time = self.spinbox.value()
         self.coeff = Derivate.enum[cmb_unit.currentIndex()]
         super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo)
+        self.yscale = "linear"
 
     def getData(self, getStarted=False, dtime=3300):
 

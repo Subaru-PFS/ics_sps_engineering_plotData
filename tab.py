@@ -19,15 +19,23 @@ class Tab(QWidget):
 
     def addGraph(self):
         self.parent.readCfg(self.parent.config_path, last=False)
-        self.layout.addWidget(PlotWindow(self))
+        widget = PlotWindow(self)
+        self.layout.addWidget(widget)
         self.layout.addWidget(self.button_add_graph)
+        return widget
 
     def delGraph(self, widget):
         widget.close()
         self.layout.removeWidget(widget)
 
     def goActive(self, bool):
+        for w in self.getPlotWindow():
+            w.goAwake() if bool else w.goSleep()
+
+    def getPlotWindow(self):
+        res = []
         for i in range(self.layout.count()):
             w = self.layout.itemAt(i).widget()
             if w != self.button_add_graph:
-                w.goAwake() if bool else w.goSleep()
+                res.append(w)
+        return res
