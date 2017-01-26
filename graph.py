@@ -256,7 +256,7 @@ class Graph(FigureCanvas):
                         ax.grid(which='major', alpha=1.0, color=self.dictofline[ax.get_lines()[0]].color,
                                 linestyle='dashdot')
                 for lines in ax.get_lines():
-                    if self.isinDict(lines):
+                    if self.isinDict(lines) and lines.get_xdata().size:
                         t0, tmax = self.ax.get_xlim()
                         ind = indFinder(lines.get_xdata(), tmax)
                         try:
