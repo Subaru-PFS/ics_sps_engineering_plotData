@@ -425,22 +425,25 @@ class Graph(FigureCanvas):
             for ax in self.fig.get_axes():
                 for lines in ax.get_lines():
                     if self.isinDict(lines):
-                        ind_t0 = indFinder(lines.get_xdata(), t0)
-                        ind_tmax = indFinder(lines.get_xdata(), tmax)
-                        step = 1 + (ind_tmax - ind_t0) / 400
-                        ind = indFinder(lines.get_xdata(), time_ax)
+                        try:
+                            ind_t0 = indFinder(lines.get_xdata(), t0)
+                            ind_tmax = indFinder(lines.get_xdata(), tmax)
+                            step = 1 + (ind_tmax - ind_t0) / 400
+                            ind = indFinder(lines.get_xdata(), time_ax)
 
-                        for i in range(ind - step, ind + step):
-                            if i >= 0 and i < len(lines.get_xdata()):
-                                try:
-                                    new_coord = ax.transData.transform((lines.get_xdata()[i], lines.get_ydata()[i]))
-                                except TypeError:
-                                    new_coord = transformCoord2Log((lines.get_xdata()[i], lines.get_ydata()[i]),
-                                                                   self.ax, self.ax2, inv=True)
-                                if new_coord is not None:
-                                    vals.append(np.sqrt((new_coord[0] - event.x()) ** 2 + (
-                                        new_coord[1] - (self.frameSize().height() - event.y())) ** 2))
-                                    result.append([lines.get_xdata()[i], lines.get_ydata()[i], ax, lines.get_label()])
+                            for i in range(ind - step, ind + step):
+                                if 0 <= i < len(lines.get_xdata()):
+                                    try:
+                                        new_coord = ax.transData.transform((lines.get_xdata()[i], lines.get_ydata()[i]))
+                                    except TypeError:
+                                        new_coord = transformCoord2Log((lines.get_xdata()[i], lines.get_ydata()[i]),
+                                                                       self.ax, self.ax2, inv=True)
+                                    if new_coord is not None:
+                                        vals.append(np.sqrt((new_coord[0] - event.x()) ** 2 + (
+                                            new_coord[1] - (self.frameSize().height() - event.y())) ** 2))
+                                        result.append([lines.get_xdata()[i], lines.get_ydata()[i], ax, lines.get_label()])
+                        except IndexError:
+                            pass
 
             if result:
                 label_point = QLabel(self)
