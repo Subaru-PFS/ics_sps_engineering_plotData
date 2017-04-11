@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
         self.getdockCalendar()
         self.getdockAlarm()
         self.getMenu()
-        self.addDockWidget(Qt.TopDockWidgetArea, self.qdockalarm)
+        #self.addDockWidget(Qt.TopDockWidgetArea, self.qdockalarm)
         self.setCentralWidget(self.tab_widget)
 
     def getMenu(self):
@@ -221,11 +221,11 @@ class MainWindow(QMainWindow):
                 tab = self.addTab(savedTab["name"])
                 for graph in savedTab["graphs"]:
                     plotWindow = tab.addGraph()
-                    for curveName in graph:
+                    for curveName, tableName in graph:
                         for groupbox in self.getListWidget(plotWindow.groupbox_layout):
                             if type(groupbox) == QGroupBox:
                                 for widget in self.getListWidget(groupbox.layout()):
-                                    if type(widget) == myQCheckBox and curveName == widget.curveName:
+                                    if hasattr(widget, "ident") and widget.ident == tableName+curveName:
                                         widget.setCheckState(2)
 
     def saveLayout(self):
@@ -237,7 +237,7 @@ class MainWindow(QMainWindow):
             plotWindows = self.tab_widget.widget(i).getPlotWindow()
             inter = []
             for plotWindow in plotWindows:
-                inter.append([curve.label for curve in plotWindow.graph.dictofline.itervalues()])
+                inter.append([(curve.label, curve.tableName) for curve in plotWindow.graph.dictofline.itervalues()])
             dict["graphs"] = inter
             customLayout.append(dict)
 

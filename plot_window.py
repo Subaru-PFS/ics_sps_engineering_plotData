@@ -86,6 +86,10 @@ class PlotWindow(QWidget):
                                                                 combo=combo_deriv,
                                                                 spinbox=integ_time,
                                                                 cmb_unit=combo_unit))
+
+                    setattr(checkbox, "ident", device+"%s_%s" % (dict["label_device"], curves["label"]))
+                    setattr(checkbox_deriv, "ident", device+"%s_d%s_dt" % (dict["label_device"],curves["label"]))
+
                     grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
                     grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
                     grid.addWidget(combo_unit, i + len(sorted_curves), 2)
