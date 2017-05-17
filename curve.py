@@ -93,8 +93,8 @@ class Curve(Line2D):
         self.currLine = line
 
     def findAcceptableRange(self):
-        rangeVals = {"temperature_k": (15, 340), "temperature_kw": (15, 340), "temperature_c": (-10, 50),
-                     "pressure_torr": (1e-10, 1e4), "power": (0, 400)}
+        rangeVals = {"temperature_k": (15, 360), "temperature_kw": (15, 360), "temperature_c": (-10, 60),
+                     "pressure_torr": (1e-10, 1e4), "power": (0, 1600)}
         self.boundaries = rangeVals[self.type] if self.type in rangeVals.iterkeys() else (-np.inf, np.inf)
 
     def checkValues(self, date, value):
