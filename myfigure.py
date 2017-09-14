@@ -3,10 +3,7 @@
 import numpy as np
 from matplotlib.figure import Figure
 
-from transform import indFinder
 from transform import computeScale
-
-from datetime import datetime as dt
 
 
 class myFigure(Figure):
@@ -28,7 +25,6 @@ class myFigure(Figure):
             self.saveBackground(event)
 
     def saveBackground(self, event):
-        self.subplots_adjust(left=0.1, right=0.90, bottom=0.15, top=0.92, wspace=0.4, hspace=0.05)
         self.setSmartScale()
         self.parent.updateStyle()
         Figure.draw(self, event)
@@ -45,7 +41,7 @@ class myFigure(Figure):
             format_date = "%H:%M:%S"
 
         step = (tmax - t0) / maxPt
-        t = np.arange(t0-step, tmax + step, step)
+        t = np.arange(t0 - step, tmax + step, step)
         for line, curve in self.parent.dictofline.iteritems():
             if self.parent.smartScale.isChecked():
                 if curve.getLim() != (t0, tmax):
