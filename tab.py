@@ -33,9 +33,6 @@ class Tab(QWidget):
             w.goAwake() if bool else w.goSleep()
 
     def getPlotWindow(self):
-        res = []
-        for i in range(self.layout.count()):
-            w = self.layout.itemAt(i).widget()
-            if w != self.button_add_graph:
-                res.append(w)
-        return res
+        res = [self.layout.itemAt(i).widget() for i in range(self.layout.count())]
+
+        return [w for w in res if w != self.button_add_graph]
