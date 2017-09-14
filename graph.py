@@ -6,7 +6,7 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib import ticker,  rcParams
+from matplotlib import ticker, rcParams
 import numpy as np
 from functools import partial
 from myfigure import myFigure
@@ -61,7 +61,7 @@ class Graph(FigureCanvas):
                     self.rdy_check = True
                     checkbox.setCheckState(0)
             else:
-                if self.delCurve(label):
+                if self.delCurve(label, tableName):
                     return 1
                 else:
                     checkbox.setCheckState(2)
@@ -90,12 +90,14 @@ class Graph(FigureCanvas):
         else:
             return 0
 
-    def delCurve(self, label):
+    def delCurve(self, label, tableName):
+
         if self.button_vcursor.isChecked():
             self.button_vcursor.click()
         for ax in self.fig.get_axes():
-            for i, line in enumerate(ax.get_lines()):
-                if line.get_label() == label:
+            for i, line in enumerate([l for l in ax.get_lines() if l in self.dictofline.iterkeys()]):
+                curv = self.dictofline[line]
+                if curv.label == label and curv.tableName == tableName:
                     self.dictofline.pop(line, None)
                     ax.lines.pop(i)
                     save_ax1, save_ax2 = self.orderAxe()
@@ -255,18 +257,18 @@ class Graph(FigureCanvas):
                         tick.label2.set_color(color=self.dictofline[ax.get_lines()[0]].color)
                         ax.grid(which='major', alpha=1.0, color=self.dictofline[ax.get_lines()[0]].color,
                                 linestyle='dashdot')
-                for lines in ax.get_lines():
-                    if self.isinDict(lines) and lines.get_xdata().size:
+                for line in ax.get_lines():
+                    if self.isinDict(line) and line.get_xdata().size:
                         t0, tmax = self.ax.get_xlim()
-                        ind = indFinder(lines.get_xdata(), tmax)
+                        ind = indFinder(line.get_xdata(), tmax)
                         try:
-                            new_coord = ax.transData.transform((lines.get_xdata()[ind], lines.get_ydata()[ind]))
+                            new_coord = ax.transData.transform((line.get_xdata()[ind], line.get_ydata()[ind]))
                         except TypeError:
-                            new_coord = transformCoord2Log((lines.get_xdata()[ind], lines.get_ydata()[ind]), self.ax,
+                            new_coord = transformCoord2Log((line.get_xdata()[ind], line.get_ydata()[ind]), self.ax,
                                                            self.ax2, inv=True)
 
-                        vmax.append([new_coord[1], lines.get_label(), lines])
-                        self.setLineStyle(lines)
+                        vmax.append([new_coord[1], line.get_label(), line])
+                        self.setLineStyle(line)
 
                 if ax.get_yscale() in ["log", "symlog"]:
                     subs = [1.0, 2.0, 3.0, 6.0]  # ticks to show per decade
@@ -286,9 +288,11 @@ class Graph(FigureCanvas):
                     tick.label2On = False
 
         vmax.sort(key=lambda row: row[0])
-        for [v, labels, lines] in reversed(vmax):
-            lns.append(lines)
-            labs.append(labels)
+        for [v, label, line] in reversed(vmax):
+            lns.append(line)
+            labs.append(label)
+
+        labs = self.checkDuplicate(labs, [self.dictofline[l].tableName.split('__')[0] for l in lns])
 
         if len(lns) < 7:
             size = 10
@@ -307,9 +311,18 @@ class Graph(FigureCanvas):
         self.dictofline[line].setLineStyle()
         color = self.dictofline[line].color if color is None else color
         line.set_color(color)
-        #line.set_markerfacecolor(color)
-        #line.set_markeredgecolor(color)
-        #line.set_markersize(marker)
+        # line.set_markerfacecolor(color)
+        # line.set_markeredgecolor(color)
+        # line.set_markersize(marker)
+
+    def checkDuplicate(self, labels, prefix):
+        labs = []
+        for i, (label, pref) in enumerate(zip(labels, prefix)):
+            inter = labels[:i] + labels[i+1:]
+            newLabel = '%s_%s'%(pref, label) if label in inter else label
+            labs.append(newLabel)
+
+        return labs
 
     def setDateFormat(self, format_date):
         self.ax.xaxis.set_major_formatter(DateFormatter(format_date))
@@ -441,7 +454,8 @@ class Graph(FigureCanvas):
                                     if new_coord is not None:
                                         vals.append(np.sqrt((new_coord[0] - event.x()) ** 2 + (
                                             new_coord[1] - (self.frameSize().height() - event.y())) ** 2))
-                                        result.append([lines.get_xdata()[i], lines.get_ydata()[i], ax, lines.get_label()])
+                                        result.append(
+                                            [lines.get_xdata()[i], lines.get_ydata()[i], ax, lines.get_label()])
                         except IndexError:
                             pass
 
