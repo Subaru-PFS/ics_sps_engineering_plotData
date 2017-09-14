@@ -5,7 +5,6 @@
 import pickle
 
 import matplotlib
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QAction, QInputDialog, QMessageBox, QGroupBox, QFileDialog
 
@@ -19,7 +18,6 @@ from ics_sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 import ConfigParser
 import os
 from mycalendar import Calendar
-from myqcheckbox import myQCheckBox
 from alarm import alarmChecker
 from tab import Tab
 from matplotlib import rcParams
@@ -84,7 +82,7 @@ class MainWindow(QMainWindow):
         self.getdockCalendar()
         self.getdockAlarm()
         self.getMenu()
-        #self.addDockWidget(Qt.TopDockWidgetArea, self.qdockalarm)
+        # self.addDockWidget(Qt.TopDockWidgetArea, self.qdockalarm)
         self.setCentralWidget(self.tab_widget)
 
     def getMenu(self):
@@ -222,10 +220,16 @@ class MainWindow(QMainWindow):
                 for graph in savedTab["graphs"]:
                     plotWindow = tab.addGraph()
                     for curveName, tableName in graph:
-                        for groupbox in self.getListWidget(plotWindow.groupbox_layout):
+                        tabWidget = plotWindow.scrollArea.widget()
+                        allTabActor = [tabWidget.widget(i) for i in range(tabWidget.count())]
+                        allgroupbox = []
+                        for l in [t.clayout for t in allTabActor]:
+                            allgroupbox += self.getListWidget(l)
+
+                        for groupbox in allgroupbox:
                             if type(groupbox) == QGroupBox:
                                 for widget in self.getListWidget(groupbox.layout()):
-                                    if hasattr(widget, "ident") and widget.ident == tableName+curveName:
+                                    if hasattr(widget, "ident") and widget.ident == tableName + curveName:
                                         widget.setCheckState(2)
 
     def saveLayout(self):

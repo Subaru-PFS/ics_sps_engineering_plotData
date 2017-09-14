@@ -3,7 +3,7 @@ from functools import partial
 
 from PyQt5.QtGui import QPixmap, QColor, QIcon
 from PyQt5.QtWidgets import QGridLayout, QPushButton, QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, \
-    QCheckBox, QScrollArea, QComboBox, QDoubleSpinBox
+    QCheckBox, QScrollArea, QComboBox, QDoubleSpinBox, QTabWidget
 
 from graph import Graph
 from mynavigationtoolbar import myNavigationToolbar
@@ -18,12 +18,14 @@ class PlotWindow(QWidget):
         self.layout = QHBoxLayout()
         graph_layout = QVBoxLayout()
         toolbar_layout = QHBoxLayout()
+        gbox_layout = QVBoxLayout()
 
         self.graph = Graph(self.parent)
         self.graph.toolbar = myNavigationToolbar(self.graph, self.parent)
         self.button_arrow = self.getButtonArrow()
         self.graph.button_vcursor = self.getVerticalCursor()
         self.graph.smartScale = self.getSmartScale()
+        self.button_del_graph = self.getButtonDelete()
         self.getColors()
         self.getGroupbox()
         graph_layout.addWidget(self.graph)
@@ -34,75 +36,22 @@ class PlotWindow(QWidget):
 
         self.layout.addLayout(graph_layout)
         self.layout.addWidget(self.button_arrow)
-        self.layout.addWidget(self.scrollArea)
-
+        gbox_layout.addWidget(self.scrollArea)
+        gbox_layout.addWidget(self.button_del_graph)
+        self.layout.addLayout(gbox_layout)
         self.setLayout(self.layout)
 
     def getGroupbox(self):
-        self.groupbox_layout = QVBoxLayout()
-        self.groupbox_widget = QWidget()
         self.scrollArea = QScrollArea()
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setMaximumWidth(325)
-        index = 0
-        sorted_dict = sorted(self.parent.parent.device_dict.items(), key=operator.itemgetter(0))
-        for (device, dict) in sorted_dict:
-            groupBox = QGroupBox(dict["label_device"])
-            groupBox.setStyleSheet("QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}")
-            groupBox.setFlat(True)
-            grid = QGridLayout()
-            groupBox.setLayout(grid)
-            sorted_curves = sorted(dict.items(), key=operator.itemgetter(1))
-            for i, (keys, curves) in enumerate(sorted_curves):
-                if keys != "label_device":
-                    curveName = "%s_%s" % (dict["label_device"], curves["label"])
-                    combo = self.getComboColor(index, curveName=curveName)
+        tabWidget = QTabWidget()
 
-                    checkbox = myQCheckBox(curves["label"], curveName, self)
-                    checkbox.stateChanged.connect(partial(self.graph.addordelCurve, checkbox,
-                                                          label="%s_%s" % (dict["label_device"], curves["label"]),
-                                                          type=curves["type"], ylabel=curves["ylabel"],
-                                                          unit=curves["unit"],
-                                                          tableName=device,
-                                                          keyword=keys,
-                                                          combo=combo))
-                    grid.addWidget(checkbox, i, 1)
-                    grid.addWidget(combo, i, 0)
-                    index += 1
-                    curveName = "%s_d%s_dt" % (dict["label_device"], curves["label"])
-                    combo_deriv = self.getComboColor(index, curveName=curveName)
-                    checkbox_deriv = myQCheckBox("d%s_dt" % curves["label"], curveName, self)
-                    integ_time = self.getSpinBox()
-                    combo_unit = self.getComboUnit(curves["unit"])
-                    checkbox_deriv.stateChanged.connect(partial(self.graph.addordelCurve, checkbox_deriv,
-                                                                label="%s_d%s_dt" % (dict["label_device"],
-                                                                                     curves["label"]),
-                                                                type="d%s_dt" % curves["type"],
-                                                                ylabel="d%s_dt (%s)" % (curves["type"].capitalize(),
-                                                                                        str(combo_deriv.currentText())),
-                                                                unit=curves["unit"],
-                                                                tableName=device,
-                                                                keyword=keys,
-                                                                combo=combo_deriv,
-                                                                spinbox=integ_time,
-                                                                cmb_unit=combo_unit))
+        for actorname, dict in self.sortActor(self.parent.parent.device_dict):
+            t = TabActor(self, dict)
+            tabWidget.addTab(t, actorname)
 
-                    setattr(checkbox, "ident", device+"%s_%s" % (dict["label_device"], curves["label"]))
-                    setattr(checkbox_deriv, "ident", device+"%s_d%s_dt" % (dict["label_device"],curves["label"]))
-
-                    grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
-                    grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
-                    grid.addWidget(combo_unit, i + len(sorted_curves), 2)
-                    grid.addWidget(integ_time, i + len(sorted_curves), 3)
-            self.groupbox_layout.addWidget(groupBox)
-
-        self.button_del_graph = QPushButton("Delete Graph")
-
-        self.button_del_graph.clicked.connect(partial(self.clearLayout, self.layout, True))
-        self.groupbox_layout.addWidget(self.button_del_graph)
-        self.groupbox_widget.setLayout(self.groupbox_layout)
-
-        self.scrollArea.setWidget(self.groupbox_widget)
+        self.scrollArea.setWidget(tabWidget)
 
     def getColors(self):
 
@@ -116,36 +65,6 @@ class PlotWindow(QWidget):
             r, g, b = colors
             self.color_tab[i] = (r / 255., g / 255., b / 255.)
         self.graph.color_tab = self.color_tab
-
-    def getComboColor(self, index, curveName):
-        combo_color = QComboBox()
-        for i, colors in enumerate(self.color_tab):
-            r, g, b = colors
-            label = QIcon()
-            color = QColor()
-            color.setRgbF(r, g, b, 1.0)
-            pixmap = QPixmap(20, 20)
-            pixmap.fill(color)
-            label.addPixmap(pixmap)
-            combo_color.addItem("")
-            combo_color.setItemIcon(i, label)
-            combo_color.setFixedWidth(45)
-        combo_color.setCurrentIndex(index % len(self.color_tab))
-        combo_color.currentIndexChanged.connect(partial(self.graph.setColorLine, curveName))
-
-        return combo_color
-
-    def getSpinBox(self):
-        integ_time = QDoubleSpinBox()
-        integ_time.setRange(15, 86400)
-        integ_time.setValue(600)
-        integ_time.setFixedWidth(80)
-        return integ_time
-
-    def getComboUnit(self, unit):
-        combo = QComboBox()
-        combo.addItems(["%s/%s" % (unit, t) for t in ["min", "hour"]])
-        return combo
 
     def getButtonArrow(self):
 
@@ -179,6 +98,11 @@ class PlotWindow(QWidget):
         smartScale.setChecked(2)
         smartScale.stateChanged.connect(self.graph.fig.canvas.draw)
         return smartScale
+
+    def getButtonDelete(self):
+        button = QPushButton("Delete Graph")
+        button.clicked.connect(partial(self.clearLayout, self.layout, True))
+        return button
 
     def cursorOn(self, button_vcursor):
         if button_vcursor.isChecked():
@@ -221,3 +145,123 @@ class PlotWindow(QWidget):
                     self.clearLayout(item.layout())
 
         self.parent.delGraph(self)
+
+    def sortActor(self, dic):
+        res = {}
+        for key, val in dic.iteritems():
+            actor = key.split('__')[0]
+            if 'xcu' in actor or 'ccd' in actor:
+                tkey = 'xcu_%s' % (key.split('_')[1])
+            else:
+                tkey = 'ait'
+
+            tkey = tkey.upper()
+            if tkey not in res.iterkeys():
+                res[tkey] = {}
+
+            res[tkey][key] = val
+        return res.iteritems()
+
+
+class TabActor(QWidget):
+    def __init__(self, plotWindow, device_dict):
+        QWidget.__init__(self)
+        self.clayout = QVBoxLayout()
+        self.plotWindow = plotWindow
+        self.device_dict = device_dict
+        self.getGroupbox()
+
+    @property
+    def graph(self):
+        return self.plotWindow.graph
+
+    @property
+    def color_tab(self):
+        return self.plotWindow.color_tab
+
+    def getGroupbox(self):
+        index = 0
+        sorted_dict = sorted(self.device_dict.items(), key=operator.itemgetter(0))
+        for (device, dict) in sorted_dict:
+            groupBox = QGroupBox(dict["label_device"])
+            groupBox.setStyleSheet("QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}")
+            groupBox.setFlat(True)
+            grid = QGridLayout()
+            groupBox.setLayout(grid)
+            sorted_curves = sorted(dict.items(), key=operator.itemgetter(1))
+            for i, (keys, curves) in enumerate(sorted_curves):
+                if keys != "label_device":
+                    curveName = "%s_%s" % (dict["label_device"], curves["label"])
+                    combo = self.getComboColor(index, curveName=curveName)
+
+                    checkbox = myQCheckBox(curves["label"], curveName, self)
+                    checkbox.stateChanged.connect(partial(self.graph.addordelCurve, checkbox,
+                                                          label="%s_%s" % (dict["label_device"], curves["label"]),
+                                                          type=curves["type"], ylabel=curves["ylabel"],
+                                                          unit=curves["unit"],
+                                                          tableName=device,
+                                                          keyword=keys,
+                                                          combo=combo))
+                    grid.addWidget(checkbox, i, 1)
+                    grid.addWidget(combo, i, 0)
+                    index += 1
+                    curveName = "%s_d%s_dt" % (dict["label_device"], curves["label"])
+                    combo_deriv = self.getComboColor(index, curveName=curveName)
+                    checkbox_deriv = myQCheckBox("d%s_dt" % curves["label"], curveName, self)
+                    integ_time = self.getSpinBox()
+                    combo_unit = self.getComboUnit(curves["unit"])
+                    checkbox_deriv.stateChanged.connect(partial(self.graph.addordelCurve, checkbox_deriv,
+                                                                label="%s_d%s_dt" % (dict["label_device"],
+                                                                                     curves["label"]),
+                                                                type="d%s_dt" % curves["type"],
+                                                                ylabel="d%s_dt (%s)" % (curves["type"].capitalize(),
+                                                                                        str(combo_deriv.currentText())),
+                                                                unit=curves["unit"],
+                                                                tableName=device,
+                                                                keyword=keys,
+                                                                combo=combo_deriv,
+                                                                spinbox=integ_time,
+                                                                cmb_unit=combo_unit))
+
+                    setattr(checkbox, "ident", device + "%s_%s" % (dict["label_device"], curves["label"]))
+                    setattr(checkbox_deriv, "ident", device + "%s_d%s_dt" % (dict["label_device"], curves["label"]))
+
+                    grid.addWidget(combo_deriv, i + len(sorted_curves), 0)
+                    grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
+                    grid.addWidget(combo_unit, i + len(sorted_curves), 2)
+                    grid.addWidget(integ_time, i + len(sorted_curves), 3)
+            self.clayout.addWidget(groupBox)
+
+        #
+        # self.groupbox_layout.addWidget(self.button_del_graph)
+        self.setLayout(self.clayout)
+
+    def getComboColor(self, index, curveName):
+        combo_color = QComboBox()
+        for i, colors in enumerate(self.color_tab):
+            r, g, b = colors
+            label = QIcon()
+            color = QColor()
+            color.setRgbF(r, g, b, 1.0)
+            pixmap = QPixmap(20, 20)
+            pixmap.fill(color)
+            label.addPixmap(pixmap)
+            combo_color.addItem("")
+            combo_color.setItemIcon(i, label)
+            combo_color.setFixedWidth(45)
+        combo_color.setCurrentIndex(index % len(self.color_tab))
+        combo_color.currentIndexChanged.connect(partial(self.graph.setColorLine, curveName))
+
+        return combo_color
+
+    def getSpinBox(self):
+        integ_time = QDoubleSpinBox()
+        integ_time.setRange(15, 86400)
+        integ_time.setValue(600)
+        integ_time.setFixedWidth(80)
+        return integ_time
+
+    def getComboUnit(self, unit):
+        combo = QComboBox()
+        combo.addItems(["%s/%s" % (unit, t) for t in ["min", "hour"]])
+        return combo
