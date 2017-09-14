@@ -42,7 +42,7 @@ class Graph(FigureCanvas):
         self.dictofline = OrderedDict({})
         self.ax = self.fig.add_subplot(111)
         self.ax.xaxis_date()
-        # self.ax.set_autoscale_on(True)
+
         self.ax2 = self.ax.twinx()
         self.ax2.format_coord = self.make_format(self.ax2, self.ax)
 
@@ -238,7 +238,7 @@ class Graph(FigureCanvas):
         lns = []
         labs = []
         vmax = []
-        self.ax.set_xlabel('Time')
+        # self.ax.set_xlabel('Time')
         for i, ax in enumerate(self.fig.get_axes()):
             if ax.get_lines():
                 ax.set_ylabel(self.dictofline[ax.get_lines()[0]].ylabel, color=self.dictofline[ax.get_lines()[0]].color)
@@ -318,8 +318,8 @@ class Graph(FigureCanvas):
     def checkDuplicate(self, labels, prefix):
         labs = []
         for i, (label, pref) in enumerate(zip(labels, prefix)):
-            inter = labels[:i] + labels[i+1:]
-            newLabel = '%s_%s'%(pref, label) if label in inter else label
+            inter = labels[:i] + labels[i + 1:]
+            newLabel = '%s_%s' % (pref, label) if label in inter else label
             labs.append(newLabel)
 
         return labs
