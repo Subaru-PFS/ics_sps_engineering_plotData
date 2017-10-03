@@ -8,8 +8,6 @@ import matplotlib
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QAction, QInputDialog, QMessageBox, QGroupBox, QFileDialog
 
-from myqdockwidget import myQDockWidget
-
 matplotlib.use("Qt5Agg")
 
 from functools import partial
@@ -117,7 +115,6 @@ class MainWindow(QMainWindow):
 
         self.calendar = Calendar(self)
 
-
     def readCfg(self, path, last=True):
         datatype = ConfigParser.ConfigParser()
         datatype.read('%s/datatype.cfg' % path)
@@ -154,13 +151,17 @@ class MainWindow(QMainWindow):
         for a in config.sections():
             if a != 'config_date':
                 inter = {}
+                if "label_device" in config.options(a):
+                    self.device_dict[a] = {"label_device": config.get(a, "label_device")}
+                else:
+                    self.device_dict[a] = {"label_device": (a.split('__')[1]).capitalize()}
+
                 for b in config.options(a):
-                    if b == "label_device":
-                        self.device_dict[a] = {"label_device": config.get(a, b)}
-                    else:
+                    if b != "label_device":
                         inter[b] = config.get(a, b).split(',')
                         inter[b] = self.cleanSpace(inter[b])
-
+                if "label" not in config.options(a):
+                    inter["label"] = [k.capitalize() for k in inter["key"]]
                 for key, type, label, in zip(inter["key"], inter["type"], inter["label"]):
                     ranges = [float(v) for v in datatype[type]['range'].split(',')]
                     self.device_dict[a][key] = {}
