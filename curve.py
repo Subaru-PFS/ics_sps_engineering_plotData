@@ -6,7 +6,7 @@ from transform import indFinder
 
 
 class Curve(Line2D):
-    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo):
+    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, (l_range, u_range)):
         super(Curve, self).__init__([], [], label=label)
         self.parent = parent
         self.graph = graph
@@ -19,10 +19,12 @@ class Curve(Line2D):
         self.tableName = tableName
         self.keyword = keyword
         self.combo = combo
+        self.l_range = l_range if l_range is not None else -np.inf
+        self.u_range = u_range if u_range is not None else np.inf
         self.last_id = 0
         self.end_id = np.inf
         self.firstCall = True
-        self.findAcceptableRange()
+
         self.watcher = QTimer(self.parent.parent)
         self.watcher.setInterval(700)
         self.watcher.timeout.connect(self.getData)
@@ -92,14 +94,9 @@ class Curve(Line2D):
     def setLine(self, line):
         self.currLine = line
 
-    def findAcceptableRange(self):
-        rangeVals = {"temperature_k": (15, 360), "temperature_kw": (15, 360), "temperature_c": (-10, 60),
-                     "pressure_torr": (1e-10, 1e4), "power": (0, 1600)}
-        self.boundaries = rangeVals[self.type] if self.type in rangeVals.iterkeys() else (-np.inf, np.inf)
-
     def checkValues(self, date, value):
         value = value[:, 0]
-        ind = np.logical_and(value >= self.boundaries[0], value <= self.boundaries[1])
+        ind = np.logical_and(value >= self.l_range, value <= self.u_range)
         return date[ind], value[ind]
 
     def getExtremum(self, values, firstTime=False):

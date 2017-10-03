@@ -34,7 +34,7 @@ class myFigure(Figure):
         t0, tmax = self.parent.ax.get_xlim()
         maxPt = 700
         if tmax - t0 > 7:
-            format_date = "%d/%m/%Y"
+            format_date = "%Y-%m-%d"
         elif tmax - t0 > 1:
             format_date = "%a %H:%M"
         else:

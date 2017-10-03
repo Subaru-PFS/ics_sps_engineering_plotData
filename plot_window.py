@@ -55,15 +55,10 @@ class PlotWindow(QWidget):
 
     def getColors(self):
 
-        self.color_tab = [(31, 119, 180), (174, 199, 232), (255, 127, 14), (255, 187, 120),
-                          (44, 160, 44), (152, 223, 138), (214, 39, 40), (255, 152, 150),
-                          (148, 103, 189), (197, 176, 213), (140, 86, 75), (196, 156, 148),
-                          (227, 119, 194), (247, 182, 210), (127, 127, 127), (199, 199, 199),
-                          (188, 189, 34), (224, 198, 17), (23, 190, 207), (158, 218, 229)]
+        self.color_tab = ['#1f78c5', '#ff801e', '#2ca13c', '#d82738', '#9568cf', '#8d565b', '#e578c3', '#17bfd1',
+                          '#f2f410', '#808080', '#000000', '#acc5f5', '#fcb986', '#96dc98', '#fc96a4', '#c3aee2',
+                          '#c29aa2', '#f4b4cf', '#9cd7e2', '#caca76', '#c5c5c5']
 
-        for i, colors in enumerate(self.color_tab):
-            r, g, b = colors
-            self.color_tab[i] = (r / 255., g / 255., b / 255.)
         self.graph.color_tab = self.color_tab
 
     def getButtonArrow(self):
@@ -79,9 +74,11 @@ class PlotWindow(QWidget):
 
         if not self.scrollArea.isHidden():
             self.scrollArea.hide()
+            self.button_del_graph.hide()
             button_arrow.setIcon(self.parent.parent.icon_arrow_left)
         else:
             self.scrollArea.show()
+            self.button_del_graph.show()
             button_arrow.setIcon(self.parent.parent.icon_arrow_right)
 
     def getVerticalCursor(self):
@@ -193,20 +190,22 @@ class TabActor(QWidget):
                 if keys != "label_device":
                     curveName = "%s_%s" % (dict["label_device"], curves["label"])
                     combo = self.getComboColor(index, curveName=curveName)
-
                     checkbox = myQCheckBox(curves["label"], curveName, self)
                     checkbox.stateChanged.connect(partial(self.graph.addordelCurve, checkbox,
                                                           label="%s_%s" % (dict["label_device"], curves["label"]),
-                                                          type=curves["type"], ylabel=curves["ylabel"],
+                                                          type=curves["type"],
+                                                          ylabel=curves["ylabel"],
                                                           unit=curves["unit"],
                                                           tableName=device,
                                                           keyword=keys,
-                                                          combo=combo))
+                                                          combo=combo,
+                                                          ranges=(curves["l_range"], curves["u_range"])
+                                                          ))
                     grid.addWidget(checkbox, i, 1)
                     grid.addWidget(combo, i, 0)
-                    index += 1
+
                     curveName = "%s_d%s_dt" % (dict["label_device"], curves["label"])
-                    combo_deriv = self.getComboColor(index, curveName=curveName)
+                    combo_deriv = self.getComboColor(index+1, curveName=curveName)
                     checkbox_deriv = myQCheckBox("d%s_dt" % curves["label"], curveName, self)
                     integ_time = self.getSpinBox()
                     combo_unit = self.getComboUnit(curves["unit"])
@@ -230,6 +229,8 @@ class TabActor(QWidget):
                     grid.addWidget(checkbox_deriv, i + len(sorted_curves), 1)
                     grid.addWidget(combo_unit, i + len(sorted_curves), 2)
                     grid.addWidget(integ_time, i + len(sorted_curves), 3)
+                    index += 2
+
             self.clayout.addWidget(groupBox)
 
         #
@@ -239,10 +240,9 @@ class TabActor(QWidget):
     def getComboColor(self, index, curveName):
         combo_color = QComboBox()
         for i, colors in enumerate(self.color_tab):
-            r, g, b = colors
             label = QIcon()
             color = QColor()
-            color.setRgbF(r, g, b, 1.0)
+            color.setNamedColor(colors)
             pixmap = QPixmap(20, 20)
             pixmap.fill(color)
             label.addPixmap(pixmap)

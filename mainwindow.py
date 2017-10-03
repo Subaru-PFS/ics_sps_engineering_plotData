@@ -18,7 +18,6 @@ from ics_sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 import ConfigParser
 import os
 from mycalendar import Calendar
-from alarm import alarmChecker
 from tab import Tab
 from matplotlib import rcParams
 import datetime as dt
@@ -80,9 +79,7 @@ class MainWindow(QMainWindow):
         self.tab_widget.currentChanged.connect(self.changeTab)
         self.tab_widget.setTabsClosable(True)
         self.getdockCalendar()
-        self.getdockAlarm()
         self.getMenu()
-        # self.addDockWidget(Qt.TopDockWidgetArea, self.qdockalarm)
         self.setCentralWidget(self.tab_widget)
 
     def getMenu(self):
@@ -120,13 +117,12 @@ class MainWindow(QMainWindow):
 
         self.calendar = Calendar(self)
 
-    def getdockAlarm(self):
-        self.qdockalarm_widget = alarmChecker(parent=self)
-        self.qdockalarm = myQDockWidget()
-
-        self.qdockalarm.setWidget(self.qdockalarm_widget)
 
     def readCfg(self, path, last=True):
+        datatype = ConfigParser.ConfigParser()
+        datatype.read('%s/datatype.cfg' % path)
+        datatype = datatype._sections
+
         res = []
         all_file = next(os.walk(path))[-1]
         for f in all_file:
@@ -165,18 +161,18 @@ class MainWindow(QMainWindow):
                         inter[b] = config.get(a, b).split(',')
                         inter[b] = self.cleanSpace(inter[b])
 
-                for keys, types, labels, units, ylabels in zip(inter["key"], inter["type"], inter["label"],
-                                                               inter["unit"],
-                                                               inter["ylabel"]):
-                    self.device_dict[a][keys] = {}
-                    self.device_dict[a][keys]["type"] = types
-                    self.device_dict[a][keys]["label"] = labels
-                    self.device_dict[a][keys]["unit"] = units
-                    self.device_dict[a][keys]["ylabel"] = ylabels
+                for key, type, label, in zip(inter["key"], inter["type"], inter["label"]):
+                    ranges = [float(v) for v in datatype[type]['range'].split(',')]
+                    self.device_dict[a][key] = {}
+                    self.device_dict[a][key]["type"] = type
+                    self.device_dict[a][key]["label"] = label
+                    self.device_dict[a][key]["unit"] = datatype[type]['unit']
+                    self.device_dict[a][key]["ylabel"] = datatype[type]['ylabel']
+                    self.device_dict[a][key]["l_range"] = ranges[0]
+                    self.device_dict[a][key]["u_range"] = ranges[1]
 
     def setNewConfig(self):
         self.readCfg(self.config_path)
-        self.qdockalarm_widget.getTimeout()
         self.showInformation("New configuration loaded")
 
     def dialogTab(self):
@@ -268,10 +264,4 @@ class MainWindow(QMainWindow):
         return self.calendar.mydate_num
 
     def cleanSpace(self, tab):
-        for i, s in enumerate(tab):
-            if tab[i][0] == ' ':
-                tab[i] = tab[i][1:]
-            if tab[i][-1] == ' ':
-                tab[i] = tab[i][:-1]
-
-        return tab
+        return [t.strip() for t in tab]

@@ -6,11 +6,11 @@ from curve import Curve
 class Derivate(Curve):
     enum = {0: 60, 1: 3600}
 
-    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
+    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, ranges, spinbox, cmb_unit):
         self.spinbox = spinbox
         self.integ_time = self.spinbox.value()
         self.coeff = Derivate.enum[cmb_unit.currentIndex()]
-        super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo)
+        super(Derivate, self).__init__(parent, graph, label, type, ylabel, unit, tableName, keyword, combo, ranges)
         self.yscale = "linear"
 
     def getData(self, getStarted=False, dtime=3300):

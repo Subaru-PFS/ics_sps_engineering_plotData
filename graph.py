@@ -51,11 +51,11 @@ class Graph(FigureCanvas):
         self.label_cursor.hide()
 
     def addordelCurve(self, checkbox, label, type, ylabel, unit, tableName, keyword, combo, spinbox=None,
-                      cmb_unit=None):
+                      cmb_unit=None, ranges=(None, None)):
 
         if not self.rdy_check:
             if checkbox.isChecked():
-                if self.addCurve(label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
+                if self.addCurve(label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit, ranges):
                     return 1
                 else:
                     self.rdy_check = True
@@ -69,15 +69,15 @@ class Graph(FigureCanvas):
         else:
             self.rdy_check = False
 
-    def addCurve(self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit):
+    def addCurve(self, label, type, ylabel, unit, tableName, keyword, combo, spinbox, cmb_unit, ranges):
 
         ax = self.getAxe(type)
         if ax is not None:
             if not spinbox:
-                new_curve = Curve(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo)
+                new_curve = Curve(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, ranges)
             else:
-                new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, spinbox,
-                                     cmb_unit)
+                new_curve = Derivate(self.parent, self, label, type, ylabel, unit, tableName, keyword, combo, ranges,
+                                     spinbox, cmb_unit)
             if new_curve.last_id > 0:
                 line, = ax.plot_date(new_curve.get_xdata(), new_curve.get_ydata(), '-', label=label)
                 ax.set_yscale(new_curve.yscale, basey=10)
@@ -346,20 +346,12 @@ class Graph(FigureCanvas):
                 if current.get_lines():
                     unit2 = "(%s)" % self.dictofline[current.get_lines()[0]].unit
                 else:
-                    if unit1 == "(Torr)":
-                        return ('{:<}   y1%s = {:<}'.format(
-                            *[num2date(x).strftime("%a %d/%m  %H:%M:%S"), '{:.3e}'.format(ax_coord[1])])) % unit1
-                    else:
-                        return ('{:<}   y1%s = {:<}'.format(
-                            *[num2date(x).strftime("%a %d/%m  %H:%M:%S"), '{:.2f}'.format(ax_coord[1])])) % unit1
-                if unit1 == "(Torr)":
-                    return ('{:<}   y1%s = {:<}   y2%s = {:<}'.format(
-                        *[num2date(x).strftime("%a %d/%m  %H:%M:%S"), '{:.3e}'.format(ax_coord[1]),
-                          '{:.2f}'.format(y)])) % (unit1, unit2)
-                else:
-                    return ('{:<}   y1%s = {:<}   y2%s = {:<}'.format(
-                        *[num2date(x).strftime("%a %d/%m  %H:%M:%S"), '{:.3e}'.format(ax_coord[1]),
-                          '{:.2f}'.format(y)])) % (unit1, unit2)
+                    return ('{:<}   y1%s = {:<}'.format(
+                        *[num2date(x).isoformat()[:19], '{:g}'.format(ax_coord[1])])) % unit1
+
+                return ('{:<}   y1%s = {:<}   y2%s = {:<}'.format(*[num2date(x).isoformat()[:19],
+                                                                    '{:g}'.format(ax_coord[1]),
+                                                                    '{:g}'.format(y)])) % (unit1, unit2)
             else:
                 self.verticalCursor(x, display_coord)
                 return ""
@@ -395,23 +387,19 @@ class Graph(FigureCanvas):
                             ind = len(lines.get_xdata()) - 1
                         if not self.exceptCursor:
                             if i == 0:
-                                txt = (num2date(lines.get_xdata()[ind]).strftime("%d/%m/%Y %H:%M:%S") + "\r\n")
+                                txt = (num2date(lines.get_xdata()[ind]).isoformat()[:19] + "\r\n")
                                 i += 1
 
-                            if "pressure" in self.dictofline[lines].type and self.dictofline[lines].type[
-                                                                             -2:] != "dt":
-                                format = "%s : %0.3e \r\n"
-                            else:
-                                format = "%s : %0.2f \r\n"
                             try:
                                 new_coord = ax.transData.transform((lines.get_xdata()[ind], lines.get_ydata()[ind]))
                             except TypeError:
                                 new_coord = transformCoord2Log((lines.get_xdata()[ind], lines.get_ydata()[ind]),
                                                                self.ax, self.ax2, inv=True)
 
-                            res.append([format, lines.get_label(), lines.get_ydata()[ind], new_coord[1]])
-            res.sort(key=lambda row: row[3])
-            txt += "".join(val[0] % (val[1], val[2]) for val in reversed(res))
+                            res.append([lines.get_label(), lines.get_ydata()[ind], new_coord[1]])
+            res.sort(key=lambda row: row[2])
+
+            txt += "\r\n".join(["%s : %g " % (val[0], val[1]) for val in reversed(res)])
 
             if not self.exceptCursor:
                 if self.label_cursor.width() + display_coord[0] > self.frameSize().width():
@@ -463,11 +451,8 @@ class Graph(FigureCanvas):
                 label_point = QLabel(self)
                 label_point.setWordWrap(True)
                 point = result[np.argmin(vals)]
-                txt = "%s \r\n" % point[3]
-                if point[2].get_yscale() == "log":
-                    txt += "%s \r\n % 0.3e" % (num2date(point[0]).strftime("%d/%m/%Y %H:%M:%S"), point[1])
-                else:
-                    txt += "%s \r\n % 0.2f" % (num2date(point[0]).strftime("%d/%m/%Y %H:%M:%S"), point[1])
+
+                txt = "%s \r\n %s : %g" % (num2date(point[0]).isoformat()[:19], point[3], point[1])
 
                 if label_point.width() + event.x() > self.frameSize().width():
                     label_point.move(event.x() - label_point.width(), event.y() - 16)
