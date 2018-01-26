@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
+from __future__ import division
 import numpy as np
 from matplotlib.figure import Figure
 
@@ -42,7 +43,7 @@ class myFigure(Figure):
 
         step = (tmax - t0) / maxPt
         t = np.arange(t0 - step, tmax + step, step)
-        for line, curve in self.parent.dictofline.iteritems():
+        for line, curve in self.parent.dictofline.items():
             if self.parent.smartScale.isChecked():
                 if curve.getLim() != (t0, tmax):
                     line.set_data(computeScale(t, curve.get_data()))

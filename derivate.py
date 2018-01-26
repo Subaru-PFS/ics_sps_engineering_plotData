@@ -1,3 +1,5 @@
+from __future__ import division
+
 import numpy as np
 
 from curve import Curve
@@ -65,7 +67,7 @@ class Derivate(Curve):
                 result.append([a, i])
                 a += 1
         if result:
-            result_date = np.array([(dates[res[0]] + dates[res[1]]) / 2 for res in result])
+            result_date = np.array([((dates[res[0]] + dates[res[1]])/ 2) for res in result])
             result_value = np.array(
                 [self.coeff * (values[res[1]] - values[res[0]]) / (dates[res[1]] - dates[res[0]]) for res in result])
 

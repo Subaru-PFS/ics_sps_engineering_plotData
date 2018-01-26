@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
+from __future__ import division
+from builtins import zip
+from builtins import range
+
 import matplotlib
 
 matplotlib.use("Qt5Agg")
@@ -95,7 +99,7 @@ class Graph(FigureCanvas):
         if self.button_vcursor.isChecked():
             self.button_vcursor.click()
         for ax in self.fig.get_axes():
-            for i, line in enumerate([l for l in ax.get_lines() if l in self.dictofline.iterkeys()]):
+            for i, line in enumerate([l for l in ax.get_lines() if l in iter(self.dictofline.keys())]):
                 curv = self.dictofline[line]
                 if curv.label == label and curv.tableName == tableName:
                     self.dictofline.pop(line, None)
@@ -429,7 +433,7 @@ class Graph(FigureCanvas):
                         try:
                             ind_t0 = indFinder(lines.get_xdata(), t0)
                             ind_tmax = indFinder(lines.get_xdata(), tmax)
-                            step = 1 + (ind_tmax - ind_t0) / 400
+                            step = 1 + (ind_tmax - ind_t0)/ 400
                             ind = indFinder(lines.get_xdata(), time_ax)
 
                             for i in range(ind - step, ind + step):
@@ -487,7 +491,7 @@ class Graph(FigureCanvas):
         self.fig.canvas.blit(self.fig.bbox)
 
     def isinDict(self, line):
-        for key in self.dictofline.iterkeys():
+        for key in self.dictofline.keys():
             if key == line:
                 return True
         return False

@@ -1,3 +1,4 @@
+from builtins import str
 import operator
 from functools import partial
 
@@ -118,18 +119,18 @@ class PlotWindow(QWidget):
                 self.graph.fig.canvas.draw()
 
     def goAwake(self):
-        for line, curve in self.graph.dictofline.iteritems():
+        for line, curve in self.graph.dictofline.items():
             if not curve.watcher.isActive():
                 curve.getData(getStarted=False, dtime=0.5)
                 curve.watcher.start()
 
     def goSleep(self):
-        for line, curve in self.graph.dictofline.iteritems():
+        for line, curve in self.graph.dictofline.items():
             curve.watcher.stop()
 
     def clearLayout(self, layout, firstTimer=False):
         if firstTimer:
-            for curve in self.graph.dictofline.itervalues():
+            for curve in self.graph.dictofline.values():
                 curve.watcher.stop()
             del (self.graph.dictofline)
         if layout is not None:
@@ -145,7 +146,7 @@ class PlotWindow(QWidget):
 
     def sortActor(self, dic):
         res = {}
-        for key, val in dic.iteritems():
+        for key, val in dic.items():
             actor = key.split('__')[0]
             if 'xcu' in actor or 'ccd' in actor:
                 tkey = 'xcu_%s' % (key.split('_')[1])
@@ -153,11 +154,11 @@ class PlotWindow(QWidget):
                 tkey = 'ait'
 
             tkey = tkey.upper()
-            if tkey not in res.iterkeys():
+            if tkey not in iter(res.keys()):
                 res[tkey] = {}
 
             res[tkey][key] = val
-        return res.iteritems()
+        return iter(res.items())
 
 
 class TabActor(QWidget):
@@ -178,14 +179,15 @@ class TabActor(QWidget):
 
     def getGroupbox(self):
         index = 0
-        sorted_dict = sorted(self.device_dict.items(), key=operator.itemgetter(0))
+        sorted_dict = sorted(list(self.device_dict.items()), key=operator.itemgetter(0))
         for (device, dict) in sorted_dict:
             groupBox = QGroupBox(dict["label_device"])
             groupBox.setStyleSheet("QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}")
             groupBox.setFlat(True)
             grid = QGridLayout()
             groupBox.setLayout(grid)
-            sorted_curves = sorted(dict.items(), key=operator.itemgetter(1))
+
+            sorted_curves = list(dict.items())
             for i, (keys, curves) in enumerate(sorted_curves):
                 if keys != "label_device":
                     curveName = "%s_%s" % (dict["label_device"], curves["label"])

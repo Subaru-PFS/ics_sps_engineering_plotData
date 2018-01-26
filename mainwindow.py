@@ -2,6 +2,12 @@
 # encoding: utf-8
 
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import next
+from builtins import zip
+from builtins import str
+from builtins import range
 import pickle
 
 import matplotlib
@@ -13,7 +19,7 @@ matplotlib.use("Qt5Agg")
 from functools import partial
 
 from ics_sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
-import ConfigParser
+import configparser
 import os
 from mycalendar import Calendar
 from tab import Tab
@@ -116,21 +122,21 @@ class MainWindow(QMainWindow):
         self.calendar = Calendar(self)
 
     def readCfg(self, path, last=True):
-        datatype = ConfigParser.ConfigParser()
+        datatype = configparser.ConfigParser()
         datatype.read('%s/datatype.cfg' % path)
         datatype = datatype._sections
 
         res = []
         all_file = next(os.walk(path))[-1]
         for f in all_file:
-            config = ConfigParser.ConfigParser()
+            config = configparser.ConfigParser()
             config.readfp(open(path + f))
             try:
                 date = config.get('config_date', 'date')
                 res.append((f, dt.datetime.strptime(date, "%d/%m/%Y")))
-            except ConfigParser.NoSectionError:
+            except configparser.NoSectionError:
                 pass
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         if last:
             res.sort(key=lambda tup: tup[1])
             config.readfp(open(path + res[-1][0]))
@@ -238,7 +244,7 @@ class MainWindow(QMainWindow):
             plotWindows = self.tab_widget.widget(i).getPlotWindow()
             inter = []
             for plotWindow in plotWindows:
-                inter.append([(curve.label, curve.tableName) for curve in plotWindow.graph.dictofline.itervalues()])
+                inter.append([(curve.label, curve.tableName) for curve in plotWindow.graph.dictofline.values()])
             dict["graphs"] = inter
             customLayout.append(dict)
 

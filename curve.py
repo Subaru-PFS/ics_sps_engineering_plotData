@@ -6,7 +6,8 @@ from transform import indFinder
 
 
 class Curve(Line2D):
-    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, (l_range, u_range)):
+    def __init__(self, parent, graph, label, type, ylabel, unit, tableName, keyword, combo, xxx_todo_changeme):
+        (l_range, u_range) = xxx_todo_changeme
         super(Curve, self).__init__([], [], label=label)
         self.parent = parent
         self.graph = graph
@@ -109,7 +110,8 @@ class Curve(Line2D):
     def getLim(self):
         return self.currLim
 
-    def setLim(self, (t0, tmax)):
+    def setLim(self, xxx_todo_changeme1):
+        (t0, tmax) = xxx_todo_changeme1
         self.currLim = t0, tmax
         ind = indFinder(self.get_xdata(), t0)
         self.currExtremum = np.min(self.get_ydata()[ind:]), np.max(self.get_ydata()[ind:])

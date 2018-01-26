@@ -1,3 +1,4 @@
+from builtins import range
 from functools import partial
 
 from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout
