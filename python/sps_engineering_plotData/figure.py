@@ -19,8 +19,11 @@ class PFigure(Figure):
             self.graph.colorStyle()
             self.formatDate()
             self.subplots_adjust(hspace=0.05)
+
+            self.graph.hideExtraLines()
             Figure.draw(self, event)
             self.graph.bck = self.saveBackground()
+            self.graph.showExtraLines()
 
     def lock(self):
         self.locked = True

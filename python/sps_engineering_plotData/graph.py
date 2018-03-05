@@ -287,13 +287,14 @@ class Graph(FigureCanvas):
                 self.fig.canvas.restore_region(background)
 
             lines = [curve.line for curve in self.curvesOnAxes + self.plotWindow.pointList]
+
             for line in lines:
                 axes = line.axes
                 axes.draw_artist(line)
 
             self.fig.canvas.blit(self.fig.bbox)
 
-        except RuntimeError:
+        except (RuntimeError, AttributeError):
             pass
 
     def colorStyle(self):
@@ -447,4 +448,14 @@ class Graph(FigureCanvas):
 
     def removePoint(self, point):
         self.plotWindow.pointList.remove(point)
+        self.doArtist()
+
+    def hideExtraLines(self):
+        for line in [point.line for point in self.plotWindow.pointList]:
+            line.set_visible(False)
+
+    def showExtraLines(self):
+        for line in [point.line for point in self.plotWindow.pointList]:
+            line.set_visible(True)
+
         self.doArtist()
