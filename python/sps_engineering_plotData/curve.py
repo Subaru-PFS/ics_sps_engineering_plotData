@@ -1,14 +1,15 @@
 import numpy as np
 from matplotlib.lines import Line2D
 from PyQt5.QtCore import QTimer
-from transform import indFinder
+
 from widgets import ComboColor
+
 
 class Curve(Line2D):
     def __init__(self, plotWindow, curveConf):
         Line2D.__init__(self, [], [], label=curveConf.label)
-        self.currAxe = None
-        self.currLine = False
+        self.ax = None
+        self.line = False
         self.watcher = False
 
         self.plotWindow = plotWindow
@@ -23,9 +24,8 @@ class Curve(Line2D):
         self.key = curveConf.key
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
-        self.yscale = "linear" if "pressure" not in self.type else 'log'
+        self.yscale = 'linear' if 'pressure' not in self.type else 'log'
         self.extremum = np.inf, -np.inf
-        self.currLim = (0, 0)
 
         self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
         if not self.dateplot.realtime:
@@ -75,7 +75,6 @@ class Curve(Line2D):
 
         except ValueError as e:
             pass
-            #print (e,  self.tablename, self.key)
 
     def startUpdating(self):
         self.watcher = QTimer(self.plotWindow)
@@ -83,30 +82,28 @@ class Curve(Line2D):
         self.watcher.timeout.connect(self.getData)
         self.watcher.start()
 
+    def setAxes(self, ax):
+        self.ax = ax
+
+    def getAxes(self):
+        return self.ax
+
     def setLine(self, line):
-        self.currLine = line
+        self.line = line
 
     def checkValues(self, values):
         l_range, u_range = self.ranges
         return np.logical_and(values >= l_range, values <= u_range)
 
     def updateColor(self):
-        if self.currLine:
-            self.currLine.set_color(self.color)
+        if self.line:
+            self.line.set_color(self.color)
             self.graph.fig.canvas.draw()
 
     def getExtremum(self, values):
 
         cmin, cmax = self.extremum
         self.extremum = np.min([cmin, np.min(values)]), np.max([cmax, np.max(values)])
-
-    def getLim(self):
-        return self.currLim
-
-    def setLim(self, t0, tmax):
-        self.currLim = t0, tmax
-        ind = indFinder(self.get_xdata(), t0)
-        self.extremum = np.min(self.get_ydata()[ind:]), np.max(self.get_ydata()[ind:])
 
     def stop(self):
         self.watcher.stop()
@@ -115,3 +112,24 @@ class Curve(Line2D):
         self.getData()
         self.watcher.start()
 
+
+class Point(object):
+    def __init__(self, line, label):
+        object.__init__(self)
+        self.line = line
+        self.label = label
+
+    def __del__(self):
+
+        self.removePoint()
+
+    def removePoint(self):
+        try:
+            ax = self.line.axes
+            ax.lines.remove(self.line)
+            del self.line
+            self.label.hide()
+            self.label.close()
+            self.label.deleteLater()
+        except ValueError:
+            pass

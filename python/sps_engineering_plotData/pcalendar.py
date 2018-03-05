@@ -21,13 +21,13 @@ class Calendar(QWidget):
         self.cal.clicked[QDate].connect(self.showDate)
         self.cal.activated.connect(self.hide)
 
-        gbCalendar = QGroupBox("Calendar")
-        gbDataset = QGroupBox("Dataset")
-        gbCalendar.setStyleSheet("QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}")
-        gbDataset.setStyleSheet("QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}")
+        gbCalendar = QGroupBox('Calendar')
+        gbDataset = QGroupBox('Dataset')
+        gbCalendar.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
+        gbDataset.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
 
-        self.checkboxRealTime = QCheckBox("Real Time Data Monitoring")
-        self.checkboxPastRuns = QCheckBox("Visualize Past Runs")
+        self.checkboxRealTime = QCheckBox('Real-time')
+        self.checkboxPastRuns = QCheckBox('Archived')
         self.spinboxDays = QSpinBox()
         self.spinboxDays.setRange(1, 100)
         self.spinboxDays.setValue(1)
@@ -37,7 +37,7 @@ class Calendar(QWidget):
         self.checkboxRealTime.setCheckState(2)
         layoutDataset = QGridLayout()
         layoutDataset.addWidget(self.checkboxRealTime, 0, 0, 2, 1)
-        layoutDataset.addWidget(QLabel("Duration (Days)"), 2, 1, 1, 1)
+        layoutDataset.addWidget(QLabel('Duration (Days)'), 2, 1, 1, 1)
         layoutDataset.addWidget(self.checkboxPastRuns, 3, 0, 1, 1)
         layoutDataset.addWidget(self.spinboxDays, 3, 1, 1, 1)
 

@@ -24,7 +24,7 @@ class ComboColor(QComboBox):
             pixmap = QPixmap(20, 20)
             pixmap.fill(color)
             label.addPixmap(pixmap)
-            self.addItem("")
+            self.addItem('')
             self.setItemIcon(i, label)
 
         self.setFixedWidth(45)
@@ -55,6 +55,7 @@ class PQCheckBox(QCheckBox):
                     self.doNone = True
                     self.setCheckState(0)
                     self.tabActor.mainwindow.showError(str(e))
+
             else:
                 self.setEnabled(True)
         else:

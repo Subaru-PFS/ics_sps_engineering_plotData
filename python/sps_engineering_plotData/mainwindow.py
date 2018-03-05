@@ -16,9 +16,9 @@ from sps_engineering_plotData.tabwidget import PTabWidget
 
 
 class MainWindow(QMainWindow):
-    cuArms = {"_r1__": "SM1 RCU",
-              "_b1__": "SM1 BCU",
-              "_r0__": "Thermal RCU",
+    cuArms = {'_r1__': 'SM1 RCU',
+              '_b1__': 'SM1 BCU',
+              '_r0__': 'Thermal RCU',
               }
 
     def __init__(self, ip, port):
@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
 
         self.new_tab_action.triggered.connect(self.tabWidget.dialogTab)
         self.about_action.triggered.connect(
-            partial(self.showInformation, "ics_sps_engineering_plotData made for PFS by ALF"))
+            partial(self.showInformation, 'ics_sps_engineering_plotData made for PFS by ALF'))
 
         self.load_layout_action.triggered.connect(self.loadLayout)
         self.save_layout_action.triggered.connect(self.saveLayout)
@@ -82,52 +82,17 @@ class MainWindow(QMainWindow):
         self.helpMenu.addAction(self.about_action)
 
     def loadLayout(self):
-        (fname, fmt) = QFileDialog.getOpenFileName(self, 'Open file',
-                                                   self.os_path.split('ics_sps_engineering_plotData')[0])
-        if fname:
-            with open(fname, 'r') as fichier:
-                unpickler = pickle.Unpickler(fichier)
-                customLayout = unpickler.load()
+        pass
+        # (fname, fmt) = QFileDialog.getOpenFileName(self, 'Open file',
+        #                                            self.os_path.split('ics_sps_engineering_plotData')[0])
+        # if fname:
+        #     with open(fname, 'r') as fichier:
+        #         unpickler = pickle.Unpickler(fichier)
+        #         customLayout = unpickler.load()
 
-            for savedTab in customLayout:
-                tab = self.addTab(savedTab["name"])
-                for graph in savedTab["graphs"]:
-                    plotWindow = tab.addGraph()
-                    for curveName, tableName in graph:
-                        tabWidget = plotWindow.scrollArea.widget()
-                        allTabActor = [tabWidget.widget(i) for i in range(tabWidget.count())]
-                        allgroupbox = []
-                        for l in [t.clayout for t in allTabActor]:
-                            allgroupbox += self.getListWidget(l)
-
-                        for groupbox in allgroupbox:
-                            if type(groupbox) == QGroupBox:
-                                for widget in self.getListWidget(groupbox.layout()):
-                                    if hasattr(widget, "ident") and widget.ident == tableName + curveName:
-                                        widget.setCheckState(2)
 
     def saveLayout(self):
-
-        customLayout = []
-        for i in range(self.tab_widget.count()):
-            name = self.tab_widget.tabText(i)
-            dict = {"name": str(name)}
-            plotWindows = self.tab_widget.widget(i).getPlotWindow()
-            inter = []
-            for plotWindow in plotWindows:
-                inter.append([(curve.label, curve.tableName) for curve in plotWindow.graph.dictofline.itervalues()])
-            dict["graphs"] = inter
-            customLayout.append(dict)
-
-        (fname, fmt) = QFileDialog.getSaveFileName(self, 'Save file',
-                                                   self.os_path.split('ics_sps_engineering_plotData')[0])
-        if fname:
-            with open(fname, 'w') as fichier:
-                pickler = pickle.Pickler(fichier)
-                pickler.dump(customLayout)
-
-    def getListWidget(self, layout):
-        return [layout.itemAt(i).widget() for i in range(layout.count())]
+        pass
 
     def showError(self, error):
 
@@ -135,9 +100,3 @@ class MainWindow(QMainWindow):
 
     def showInformation(self, information):
         reply = QMessageBox.information(self, 'Message', information, QMessageBox.Ok)
-
-    def getNumdate(self):
-        return self.calendar.mydate_num
-
-    def cleanSpace(self, tab):
-        return [t.strip() for t in tab]

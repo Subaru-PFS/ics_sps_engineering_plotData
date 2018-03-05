@@ -66,7 +66,7 @@ class PTabWidget(QTabWidget):
 
     def delTab(self, k):
         reply = QMessageBox.question(self, 'Message',
-                                     "Are you sure to close this window?", QMessageBox.Yes |
+                                     'Are you sure to close this window?', QMessageBox.Yes |
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.removeTab(k)

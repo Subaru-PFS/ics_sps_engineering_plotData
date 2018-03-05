@@ -10,13 +10,13 @@ class NavigationToolbar(NavigationToolbar2QT):
         NavigationToolbar2QT.__init__(self, graph, plotWindow)
 
     def isZoomed(self):
-        if self._active == "ZOOM":
+        if self._active == 'ZOOM':
             return 1
         else:
             return 0
 
     def isPanned(self):
-        if self._active == "PAN":
+        if self._active == 'PAN':
             return 1
         else:
             return 0
@@ -45,16 +45,16 @@ class NavigationToolbar(NavigationToolbar2QT):
                 ylabel = axes.get_ylabel()
                 label = axes.get_label()
                 if title:
-                    fmt = "%(title)s"
+                    fmt = '%(title)s'
                     if ylabel:
-                        fmt += ": %(ylabel)s"
-                    fmt += " (%(axes_repr)s)"
+                        fmt += ': %(ylabel)s'
+                    fmt += ' (%(axes_repr)s)'
                 elif ylabel:
-                    fmt = "%(axes_repr)s (%(ylabel)s)"
+                    fmt = '%(axes_repr)s (%(ylabel)s)'
                 elif label:
-                    fmt = "%(axes_repr)s (%(label)s)"
+                    fmt = '%(axes_repr)s (%(label)s)'
                 else:
-                    fmt = "%(axes_repr)s"
+                    fmt = '%(axes_repr)s'
                 titles.append(fmt % dict(title=title,
                                          ylabel=ylabel, label=label,
                                          axes_repr=repr(axes)))

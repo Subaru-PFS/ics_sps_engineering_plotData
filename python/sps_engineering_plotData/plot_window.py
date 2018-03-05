@@ -14,8 +14,9 @@ class PlotWindow(QWidget):
     def __init__(self, tab):
         super(PlotWindow, self).__init__()
         self.tab = tab
-        self.axes = {}
+        self.allAxes = {}
         self.curveList = []
+        self.pointList = []
         self.layout = QHBoxLayout()
         self.graph_layout = QVBoxLayout()
         self.gbox_layout = QVBoxLayout()
@@ -50,23 +51,21 @@ class PlotWindow(QWidget):
         return self.dateplot.config
 
     @property
-    def line2Curve(self):
-        return {curve.currLine: curve for curve in self.curveList}
+    def axes2curves(self):
+        d = {ax: [] for ax in [None] + list(self.allAxes.values())}
 
-    @property
-    def axe2curves(self):
-        d = {}
         for curve in self.curveList:
-            axe = curve.currAxe
-            if axe not in d.keys():
-                d[axe] = []
-            d[axe].append(curve)
+            d[curve.getAxes()].append(curve)
 
         return d
 
     @property
-    def axe2id(self):
-        d = {ax: id for id, ax in self.axes.items()}
+    def line2Curve(self):
+        return {curve.line: curve for curve in self.curveList}
+
+    @property
+    def axes2id(self):
+        d = {ax: id for id, ax in self.allAxes.items()}
         d[None] = None
         return d
 
@@ -81,12 +80,11 @@ class PlotWindow(QWidget):
         self.graph = Graph(self, custom)
         self.graph_layout.insertWidget(0, self.graph)
 
-    def getAxe(self, newType, i=-1):
+    def getAxes(self, newType, i=-1):
 
-        for i, ax in self.axes.items():
+        for i, ax in self.allAxes.items():
             try:
-                line = ax.get_lines()[0]
-                curve = self.line2Curve[line]
+                curve = self.axes2curves[ax][0]
                 if curve.type == newType:
                     return ax
             except IndexError:
@@ -98,33 +96,37 @@ class PlotWindow(QWidget):
 
     def setAxes(self, axes):
 
-        while self.axes.keys():
-            key = [key for key in self.axes.keys()][0]
-            self.unsetLines(self.axes[key], axes)
-            self.axes.pop(key, None)
+        while self.allAxes.keys():
+            key = [key for key in self.allAxes.keys()][0]
+            self.unsetLines(self.allAxes[key], axes)
+            self.allAxes.pop(key, None)
 
-        self.axes = axes
+        self.allAxes = axes
 
-    def unsetLines(self, axe, newAxes):
-        while axe.lines:
-            line = axe.lines[0]
-            curve = self.line2Curve[line]
-            axe.lines.remove(line)
+    def unsetLines(self, axes, newAxes):
+        while axes.lines:
+            line = axes.lines[0]
+            axes.lines.remove(line)
+            try:
+                curve = self.line2Curve[line]
+                curve.line = False
+                if curve.getAxes() not in newAxes.values():
+                    curve.setAxes(None)
+            except KeyError:
+                pass
             del line
-            curve.currLine = False
-            if curve.currAxe not in newAxes.values():
-                curve.currAxe = None
 
     def addCurve(self, curveConf):
 
         new_curve = Curve(self, curveConf)
-        ax = self.getAxe(new_curve.type)
+        axes = self.getAxes(new_curve.type)
 
-        if isinstance(ax, int):
-            self.customize.allAxes[ax].checkbox.setChecked(2)
-            ax = self.axes[ax]
+        if isinstance(axes, int):
+            idAxes = axes
+            self.customize.allAxes[idAxes].checkbox.setChecked(2)
+            axes = self.allAxes[idAxes]
 
-        new_curve.currAxe = ax
+        new_curve.setAxes(axes)
         self.appendCurve(new_curve)
         self.graph.plotCurves(new_curve)
 
@@ -136,8 +138,8 @@ class PlotWindow(QWidget):
         self.customize.appendRow(new_curve)
 
     def switchCurve(self, axeId, curve):
-        axe = self.axes[axeId] if axeId is not None else None
-        self.graph.switchCurve(axe, curve)
+        ax = self.allAxes[axeId] if axeId is not None else None
+        self.graph.switchCurve(ax, curve)
 
     def removeCurve(self, curve):
         self.curveList.remove(curve)
@@ -148,8 +150,7 @@ class PlotWindow(QWidget):
             checkbox.setCheckable(True)
             checkbox.setChecked(0)
         except RuntimeError:
-            pass #Checkbox could have been already deleted
-
+            pass  # Checkbox could have been already deleted
 
     def constructGroupbox(self, config):
 
@@ -183,7 +184,7 @@ class PlotWindow(QWidget):
             button_arrow.setIcon(self.mainwindow.icon_arrow_right)
 
     def ButtonDelete(self):
-        button = QPushButton("Remove Graph")
+        button = QPushButton('Remove Graph')
         button.clicked.connect(partial(self.removeGraph, self.layout))
         return button
 
@@ -192,10 +193,9 @@ class PlotWindow(QWidget):
         button_arrow = QPushButton()
         button_arrow.setIcon(self.mainwindow.icon_arrow_right)
         button_arrow.clicked.connect(partial(self.showhideConfig, button_arrow))
-        button_arrow.setStyleSheet("border: 0px")
+        button_arrow.setStyleSheet('border: 0px')
 
         return button_arrow
-
 
     def removeGraph(self, layout):
         self.clearLayout(layout)
@@ -257,7 +257,7 @@ class TabActor(QScrollArea):
         index = 0
         for nb, device in enumerate(self.config):
             groupBox = QGroupBox(device.deviceLabel)
-            groupBox.setStyleSheet("QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}")
+            groupBox.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
             groupBox.setFlat(True)
             grid = QGridLayout()
             groupBox.setLayout(grid)
@@ -282,5 +282,5 @@ class TabActor(QScrollArea):
 
     def getComboUnit(self, unit):
         combo = QComboBox()
-        combo.addItems(["%s/%s" % (unit, t) for t in ["min", "hour"]])
+        combo.addItems(['%s/%s' % (unit, t) for t in ['min', 'hour']])
         return combo

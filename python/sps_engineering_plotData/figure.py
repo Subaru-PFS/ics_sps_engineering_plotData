@@ -14,18 +14,13 @@ class PFigure(Figure):
         self.locked = False
 
     def draw(self, event):
-        # if hasattr(self.graph, "linev"):
-        #     if not self.graph.exceptCursor:
-        #         self.graph.linev.set_visible(False)
-        #         self.graph.label_cursor.hide()
-        #         self.saveBackground(event)
-        #         self.graph.linev.set_visible(True)
-        #         self.graph.ax.draw_artist(self.graph.linev)
-        #         self.graph.label_cursor.show()
-        # else:
-        #     self.graph.removePoint()
+
         if not self.locked:
-            self.saveBackground(event)
+            self.graph.colorStyle()
+            self.formatDate()
+            self.subplots_adjust(hspace=0.05)
+            Figure.draw(self, event)
+            self.graph.bck = self.saveBackground()
 
     def lock(self):
         self.locked = True
@@ -33,42 +28,41 @@ class PFigure(Figure):
     def unlock(self):
         self.locked = False
 
-    def saveBackground(self, event):
-        #self.setLineData()
-        self.graph.colorStyle()
-        self.formatDate()
+    def saveBackground(self):
+        if self.graph.allAxes.keys():
+            idAxes = [0, 2] if 2 in self.graph.allAxes.keys() else [0]
+            bck = [self.canvas.copy_from_bbox(self.graph.allAxes[idAx].bbox) for idAx in idAxes]
+        else:
+            bck = None
 
-        self.subplots_adjust(hspace=0.05)
-        Figure.draw(self, event)
-
-        self.graph.background = self.canvas.copy_from_bbox(self.graph.axes[0].bbox) if self.graph.axes.keys() else None
+        return bck
 
     def formatDate(self):
-        if not self.graph.axes.keys():
+        if not self.graph.allAxes.keys():
             return
 
-        idAxis = 2 if 2 in self.graph.axes.keys() else 0
+        idAxes = 2 if 2 in self.graph.allAxes.keys() else 0
 
-        if idAxis:
-            for tic in self.graph.axes[0].xaxis.get_major_ticks():
+        if idAxes:
+            for tic in self.graph.allAxes[0].xaxis.get_major_ticks():
                 tic.tick1On = tic.tick2On = False
                 tic.label1On = tic.label2On = False
 
-        dateAxis = self.graph.axes[idAxis]
-        t0, tmax = dateAxis.get_xlim()
+        dateAxes = self.graph.allAxes[idAxes]
+        t0, tmax = dateAxes.get_xlim()
         if tmax - t0 > 7:
-            format_date = "%Y-%m-%d"
+            format_date = '%Y-%m-%d'
         elif tmax - t0 > 1:
-            format_date = "%a %H:%M"
+            format_date = '%a %H:%M'
         else:
-            format_date = "%H:%M:%S"
+            format_date = '%H:%M:%S'
 
-        dateAxis.xaxis.set_major_formatter(DateFormatter(format_date))
-        plt.setp(dateAxis.xaxis.get_majorticklabels(), rotation=20, horizontalalignment='center')
+        dateAxes.xaxis.set_major_formatter(DateFormatter(format_date))
+        plt.setp(dateAxes.xaxis.get_majorticklabels(), rotation=20, horizontalalignment='center')
 
     def setLineData(self):
 
-        tmin, tmax = self.graph.axes[0].get_xlim()
+        tmin, tmax = self.graph.allAxes[0].get_xlim()
         delta = tmax - tmin
         tmin -= delta * 0.05
         tmax += delta * 0.05

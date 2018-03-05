@@ -44,13 +44,13 @@ class CurveRow():
 
     def getComboAxes(self):
 
-        axeId = self.customize.plotWindow.axe2id[self.curve.currAxe]
+        axesId = self.customize.plotWindow.axes2id[self.curve.getAxes()]
 
         combo = QComboBox()
-        availables = [Customize.id2axeTxt[id] for id in self.customize.axesAvailables] + ['none']
+        availables = [Customize.id2axStr[id] for id in self.customize.axesAvailables] + ['none']
         combo.addItems(availables)
 
-        combo.setCurrentText(Customize.id2axeTxt[axeId])
+        combo.setCurrentText(Customize.id2axStr[axesId])
         combo.currentIndexChanged.connect(partial(self.customize.switchSubplot, self))
         self.comboAxe = combo
 
@@ -59,8 +59,8 @@ class CurveRow():
 
 class Customize(QGroupBox):
     tup = [(0, 'ax1'), (1, 'ax2'), (2, 'ax3'), (3, 'ax4'), (None, 'none')]
-    id2axeTxt = dict(tup)
-    axeTxt2id = dict([(val, key) for key, val in tup])
+    id2axStr = dict(tup)
+    axStr2id = dict([(val, key) for key, val in tup])
 
     def __init__(self, plotWindow):
         self.plotWindow = plotWindow
@@ -73,9 +73,9 @@ class Customize(QGroupBox):
         self.rowList = []
         self.allAxes = {}
 
-        for id, axeTxt in Customize.id2axeTxt.items():
+        for id, axStr in Customize.id2axStr.items():
             if id is not None:
-                self.constructAxe(id, axeTxt)
+                self.constructAxe(id, axStr)
 
         self.checkAvailable()
         layout.addLayout(self.sublayout)
@@ -107,8 +107,8 @@ class Customize(QGroupBox):
             row.addWidgets(self.curvelayout, ind)
 
     def switchSubplot(self, curveRow):
-        axeId = Customize.axeTxt2id[curveRow.comboAxe.currentText()]
-        self.plotWindow.switchCurve(axeId, curveRow.curve)
+        axesId = Customize.axStr2id[curveRow.comboAxe.currentText()]
+        self.plotWindow.switchCurve(axesId, curveRow.curve)
 
 
     def checkAvailable(self):
@@ -145,21 +145,6 @@ class Subplot(QHBoxLayout):
         self.addWidget(self.checkbox)
         self.addWidget(self.comscale)
 
-    def handleChecking(self):
-
-        if self.checkbox.isChecked():
-            self.customAxes.append(self)
-        else:
-            self.customAxes.remove(self)
-
-        self.customize.plotWindow.createGraph(self.customAxes)
-        self.customize.checkAvailable()
-
-    def updateScale(self):
-        try:
-            self.graph.updateScale(self.graph.axes[self.id], self.comscale.currentText())
-        except Exception as e:
-            print (e)
 
     @property
     def customAxes(self):
@@ -172,3 +157,20 @@ class Subplot(QHBoxLayout):
     @property
     def graph(self):
         return self.customize.plotWindow.graph
+
+
+    def handleChecking(self):
+
+        if self.checkbox.isChecked():
+            self.customAxes.append(self)
+        else:
+            self.customAxes.remove(self)
+
+        self.customize.plotWindow.createGraph(self.customAxes)
+        self.customize.checkAvailable()
+
+    def updateScale(self):
+        try:
+            self.graph.updateScale(self.graph.allAxes[self.id], self.comscale.currentText())
+        except Exception as e:
+            print (e)

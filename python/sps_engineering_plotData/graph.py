@@ -2,20 +2,22 @@
 # encoding: utf-8
 import matplotlib
 
-matplotlib.use("Qt5Agg")
+matplotlib.use('Qt5Agg')
 
 from matplotlib import ticker, rcParams
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.dates import num2date
+from functools import partial
 
 from figure import PFigure
 from transform import make_format, indFinder
 from navigationtoolbar import NavigationToolbar
+from curve import Point
 
-from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout
+from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 
 rcParams.update({'figure.autolayout': True})
@@ -38,7 +40,7 @@ def draw(func):
 
 
 class Graph(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+    '''Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.).'''
 
     def __init__(self, plotWindow, customAxe, width=4, height=2, dpi=100):
         self.fig = PFigure(self, width, height, dpi)
@@ -61,65 +63,64 @@ class Graph(FigureCanvas):
         self.plotWindow.graph_layout.addLayout(toolbarLayout)
 
     @property
-    def axes(self):
-        return self.plotWindow.axes
-
-    @property
-    def line2Curve(self):
-        return self.plotWindow.line2Curve
+    def allAxes(self):
+        return self.plotWindow.allAxes
 
     @property
     def isZoomed(self):
         return self.toolbar.isZoomed()
 
+    @property
+    def curvesOnAxes(self):
+        return [curve for curve in self.plotWindow.curveList if curve.getAxes() is not None]
+
     def buildAxes(self, custom):
-        subplotsize = 210 if 2 in [newAxe.id for newAxe in custom] else 110
-        newAxes = {}
+        subplotsize = 210 if 2 in [newAxes.id for newAxes in custom] else 110
+        AllAxes = {}
 
-        for newAxe in custom:
+        oldAffect = self.plotWindow.axes2curves
 
-            if newAxe.id == 0:
-                axe = self.fig.add_subplot(subplotsize + 1)
-            elif newAxe.id == 1:
-                axe = newAxes[0].twinx()
-                axe.format_coord = make_format(axe, newAxes[0])
-            elif newAxe.id == 2:
-                axe = self.fig.add_subplot(subplotsize + 2, sharex=newAxes[0])
-            elif newAxe.id == 3:
-                axe = newAxes[2].twinx()
-                axe.format_coord = make_format(axe, newAxes[2])
-
+        for newAxes in custom:
+            if newAxes.id == 0:
+                axes = self.fig.add_subplot(subplotsize + 1)
+            elif newAxes.id == 1:
+                axes = AllAxes[0].twinx()
+                axes.format_coord = make_format(axes, AllAxes[0])
+            elif newAxes.id == 2:
+                axes = self.fig.add_subplot(subplotsize + 2, sharex=AllAxes[0])
+            elif newAxes.id == 3:
+                axes = AllAxes[2].twinx()
+                axes.format_coord = make_format(axes, AllAxes[2])
             try:
-                oldaxe = self.axes[newAxe.id]
-                for curve in self.plotWindow.axe2curves[oldaxe]:
-                    curve.currAxe = axe
+                oldAxes = self.allAxes[newAxes.id]
+
+                for curve in oldAffect[oldAxes]:
+                    curve.setAxes(axes)
 
             except KeyError:
                 pass
 
-            newAxes[newAxe.id] = axe
+            AllAxes[newAxes.id] = axes
 
-        self.plotWindow.setAxes(newAxes)
+        self.plotWindow.setAxes(AllAxes)
 
         self.plotCurves()
 
     def plot_date(self, curve):
-        ax = curve.currAxe
-        if ax is None:
-            return
-        empty = False if ax.get_lines() else True
+        ax = curve.getAxes()
 
         line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-', color=curve.color, label=curve.label)
         curve.setLine(line)
 
-        if empty:
-            self.setNewScale(curve)
+        self.setNewScale(curve)
 
     @draw
     def plotCurves(self, new_curve=False):
 
         Curves = [new_curve] if new_curve else self.plotWindow.curveList
-        for curve in Curves:
+        onAxe = [curve for curve in Curves if curve.getAxes() is not None]
+
+        for curve in onAxe:
             self.plot_date(curve)
 
     @draw
@@ -131,46 +132,45 @@ class Graph(FigureCanvas):
         del curve
 
     @draw
-    def updateScale(self, axe, scale):
-        axe.set_yscale(scale, basey=10)
+    def updateScale(self, ax, scale):
+        ax.set_yscale(scale, basey=10)
 
-    def switchCurve(self, axe, curve):
+    def switchCurve(self, axes, curve):
 
         self.removeLine(curve)
-        curve.currAxe = axe
+        curve.setAxes(axes)
 
         self.plotCurves(curve)
 
     def removeLine(self, curve):
-        line = curve.currLine
+        line = curve.line
         if line:
-            lines = curve.currAxe.lines
+            lines = curve.getAxes().lines
 
             lines.remove(line)
             del line
-            curve.currLine = False
+            curve.line = False
 
     def relim(self):
 
         tmin, tmax = self.get_xlim()
-        ylims = [self.get_ylim(axe) for axe in self.axes.values()]
+        ylims = [self.get_ylim(ax) for ax in self.allAxes.values()]
 
         limits = [(tmin, tmax, ymin, ymax) for ymin, ymax in ylims]
 
         if not self.isZoomed:
-            for axe, (tmin, tmax, ymin, ymax) in zip(self.axes.values(), limits):
-                axe.set_xlim(tmin, tmax)
-                axe.set_ylim(ymin, ymax)
+            for ax, (tmin, tmax, ymin, ymax) in zip(self.allAxes.values(), limits):
+                ax.set_xlim(tmin, tmax)
+                ax.set_ylim(ymin, ymax)
         else:
             self.toolbar.setNewHome(limits)
 
     def get_xlim(self):
-        lines = []
 
-        for axe in self.axes.values():
-            lines += axe.get_lines()
+        curves = []
 
-        curves = [self.line2Curve[line] for line in lines]
+        for ax in self.allAxes.values():
+            curves += self.plotWindow.axes2curves[ax]
 
         try:
             tmin = np.min([np.min(curve.get_xdata()) for curve in curves])
@@ -183,9 +183,8 @@ class Graph(FigureCanvas):
 
         return tmin, tmax
 
-    def get_ylim(self, axe):
-        lines = axe.get_lines()
-        curves = [self.line2Curve[line] for line in lines]
+    def get_ylim(self, axes):
+        curves = self.plotWindow.axes2curves[axes]
 
         try:
             ymin = np.min([np.min(curve.get_ydata()) for curve in curves])
@@ -208,22 +207,22 @@ class Graph(FigureCanvas):
         return dmin, dmax
 
     def checkScales(self):
-        for id, axe in self.axes.items():
+        for id, ax in self.allAxes.items():
             comboScale = self.plotWindow.customize.allAxes[id].comscale
-            if axe.get_yscale() != comboScale.currentText():
-                axe.set_yscale(comboScale.currentText())
+            if ax.get_yscale() != comboScale.currentText():
+                ax.set_yscale(comboScale.currentText())
 
     def setNewScale(self, curve):
-        axe = curve.currAxe
-        comboScale = self.plotWindow.customize.allAxes[self.plotWindow.axe2id[axe]].comscale
+        axes = curve.getAxes()
+        comboScale = self.plotWindow.customize.allAxes[self.plotWindow.axes2id[axes]].comscale
 
         if curve.yscale != comboScale.currentText():
             comboScale.setCurrentText(curve.yscale)
 
     def updatePlot(self, curve, xdata, ydata):
 
-        axe = curve.currAxe
-        line = curve.currLine
+        axes = curve.getAxes()
+        line = curve.line
 
         if line:
             line.set_data(np.append(line.get_xdata(), xdata), np.append(line.get_ydata(), ydata))
@@ -233,23 +232,23 @@ class Graph(FigureCanvas):
         if self.isZoomed:
             doDraw = False
         else:
-            doDraw = self.updateLimits(axe, xdata)
+            doDraw = self.updateLimits(axes, xdata)
 
         self.displayLine(doDraw=doDraw)
 
-    def updateLimits(self, axe, xdata, doDraw=False):
-        tmin, tmax = axe.get_xlim()
+    def updateLimits(self, axes, xdata, doDraw=False):
+        tmin, tmax = axes.get_xlim()
 
         if np.max(xdata) > (tmax - 0.01 * (tmax - tmin)):
-            axe.set_xlim(self.calc_lim(tmin, np.max(xdata), f1=0, f2=0.15))
+            axes.set_xlim(self.calc_lim(tmin, np.max(xdata), f1=0, f2=0.15))
             doDraw = True
 
-        for axe in self.axes.values():
-            if axe.get_lines():
-                ymin, ymax = axe.get_ylim()
+        for ax in self.allAxes.values():
+            if self.plotWindow.axes2curves[ax]:
+                ymin, ymax = ax.get_ylim()
                 delta = 0.03 * (ymax - ymin)
 
-                curves = [self.line2Curve[line] for line in axe.get_lines()]
+                curves = self.plotWindow.axes2curves[ax]
                 indices = [indFinder(curve.get_xdata(), tmin) for curve in curves]
 
                 newMin = np.min([np.min(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
@@ -259,7 +258,7 @@ class Graph(FigureCanvas):
                 newMax = newMax if newMax > (ymax - delta) else ymax
 
                 if not (newMin == ymin and newMax == ymax):
-                    axe.set_ylim(self.calc_lim(newMin, newMax))
+                    ax.set_ylim(self.calc_lim(newMin, newMax))
                     doDraw = True
 
         return doDraw
@@ -278,65 +277,74 @@ class Graph(FigureCanvas):
         if self.onDrawing == 'doDraw':
             self.fig.canvas.draw()
         else:
-            self.fig.canvas.restore_region(self.background)
-            for curve in self.plotWindow.curveList:
-                axe = curve.currAxe
-                if axe is not None:
-                    axe.draw_artist(curve.currLine)
-
-            self.fig.canvas.blit(self.fig.bbox)
+            self.doArtist()
 
         self.onDrawing = False
 
+    def doArtist(self):
+        try:
+            for background in self.bck:
+                self.fig.canvas.restore_region(background)
+
+            lines = [curve.line for curve in self.curvesOnAxes + self.plotWindow.pointList]
+            for line in lines:
+                axes = line.axes
+                axes.draw_artist(line)
+
+            self.fig.canvas.blit(self.fig.bbox)
+
+        except RuntimeError:
+            pass
+
     def colorStyle(self):
-        fontsize = 10 if 2 in self.axes.keys() else 12
-        for id, axe in self.axes.items():
+        fontsize = 10 if 2 in self.allAxes.keys() else 12
+        for id, ax in self.allAxes.items():
             try:
                 primAxe = not id % 2
-                colorLine = axe.get_lines()[0]
-                curve = self.line2Curve[colorLine]
-                axe.set_ylabel(curve.ylabel, color=curve.color, fontsize=fontsize)
-                self.setTickLocator(axe)
+                curve = self.plotWindow.axes2curves[ax][0]
+                ax.set_ylabel(curve.ylabel, color=curve.color, fontsize=fontsize)
+                self.setTickLocator(ax)
 
-                for tick in (axe.yaxis.get_major_ticks() + axe.yaxis.get_minor_ticks()):
+                for tick in (ax.yaxis.get_major_ticks() + ax.yaxis.get_minor_ticks()):
                     self.pimpTicks(tick, primAxe, curve.color)
 
                 [maj_style, min_style, alpha2] = ['--', '-', 0.15] if primAxe else [':', '-.', 0.1]
 
-                axe.grid(which='major', alpha=0.6, color=curve.color, linestyle=maj_style)
-                axe.grid(which='minor', alpha=alpha2, color=curve.color, linestyle=min_style)
+                ax.grid(which='major', alpha=0.6, color=curve.color, linestyle=maj_style)
+                ax.grid(which='minor', alpha=alpha2, color=curve.color, linestyle=min_style)
 
-                axe.tick_params(axis='y', labelsize=fontsize)
+                ax.tick_params(axis='y', labelsize=fontsize)
             except IndexError:
                 pass
 
         self.addLegend()
 
     def addLegend(self):
-        if not self.axes.items():
+        if not self.allAxes.items():
             return
-        t0, tmax = self.axes[0].get_xlim()
+        t0, tmax = self.allAxes[0].get_xlim()
 
         for sub in range(2):
-            lns = []
+            cvs = []
             for twin in range(2):
                 try:
-                    lns += self.axes[2 * sub + twin].get_lines()
+                    ax = self.allAxes[2 * sub + twin]
+                    cvs += self.plotWindow.axes2curves[ax]
                 except KeyError:
                     pass
 
             try:
-                self.axes[2 * sub].get_legend().remove()
+                self.allAxes[2 * sub].get_legend().remove()
             except (AttributeError, KeyError):
                 pass
 
-            if lns:
-                indices = [indFinder(line.get_xdata(), tmax) for line in lns]
-                vals = [(line.get_xdata()[ind], line.get_ydata()[ind]) for line, ind in zip(lns, indices)]
+            if cvs:
+                indices = [indFinder(curve.get_xdata(), tmax) for curve in cvs]
+                vals = [(curve.get_xdata()[ind], curve.get_ydata()[ind]) for curve, ind in zip(cvs, indices)]
 
-                coords = [self.line2Curve[line].currAxe.transData.transform((x, y)) for line, (x, y) in zip(lns, vals)]
+                coords = [curve.getAxes().transData.transform((x, y)) for curve, (x, y) in zip(cvs, vals)]
 
-                toSort = [(pix_y, line, line.get_label()) for line, (pix_x, pix_y) in zip(lns, coords)]
+                toSort = [(pix_y, curve.line, curve.label) for curve, (pix_x, pix_y) in zip(cvs, coords)]
 
                 toSort.sort(key=lambda row: row[0])
 
@@ -345,21 +353,21 @@ class Graph(FigureCanvas):
 
                 size = 8.5 - 0.12 * len(lns)
 
-                self.axes[2 * sub].legend(lns, labs, loc='best', prop={'size': size})
+                self.allAxes[2 * sub].legend(lns, labs, loc='best', prop={'size': size})
 
-    def setTickLocator(self, axe):
+    def setTickLocator(self, ax):
 
-        if axe.get_yscale() in ["log"]:
-            axe.yaxis.set_minor_locator(ticker.LogLocator(subs=[2, 3, 6]))
-            axe.yaxis.set_minor_formatter(ticker.FormatStrFormatter("%.1e"))
+        if ax.get_yscale() in ['log']:
+            ax.yaxis.set_minor_locator(ticker.LogLocator(subs=[2, 3, 6]))
+            ax.yaxis.set_minor_formatter(ticker.FormatStrFormatter('%.1e'))
 
         else:
             minor_locatory = ticker.AutoMinorLocator(5)
-            axe.yaxis.set_minor_locator(minor_locatory)
-            axe.get_yaxis().get_major_formatter().set_useOffset(False)
+            ax.yaxis.set_minor_locator(minor_locatory)
+            ax.get_yaxis().get_major_formatter().set_useOffset(False)
 
         minor_locatorx = ticker.AutoMinorLocator(5)
-        axe.xaxis.set_minor_locator(minor_locatorx)
+        ax.xaxis.set_minor_locator(minor_locatorx)
 
     def pimpTicks(self, tick, primAxe, color):
         tick.label1On = True if primAxe else False
@@ -377,11 +385,58 @@ class Graph(FigureCanvas):
 
     def getSmartScale(self):
 
-        smartScale = QCheckBox("Enhance Performances")
+        smartScale = QCheckBox('Enhance Performances')
         smartScale.setChecked(2)
         smartScale.stateChanged.connect(self.fig.canvas.draw)
         return smartScale
 
+    def mouseDoubleClickEvent(self, event):
+        if not self.allAxes.keys():
+            return
+        results = []
+
+        pix_point_x = event.x()
+        pix_point_y = self.frameSize().height() - event.y()
+        inv = self.allAxes[0].transData.inverted()
+
+        [t_point, __] = inv.transform((pix_point_x, pix_point_y))
+
+        for curve in self.curvesOnAxes:
+            ax = curve.getAxes()
+
+            t0, tmax = ax.get_xlim()
+            ind_min = indFinder(curve.get_xdata(), t0)
+            ind_max = indFinder(curve.get_xdata(), tmax)
+            resolution = (ind_max - ind_min) / (self.frameSize().width())
+            t_ind = indFinder(curve.get_xdata(), t_point)
+            imin, imax = int(t_ind - 4 * resolution), int(t_ind + 4 * resolution) + 1
+            imin = 0 if imin < 0 else imin
+            imax = len(curve.get_xdata()) if imax >= len(curve.get_xdata()) else imax
+
+            data = [ax.transData.transform((curve.get_xdata()[i], curve.get_ydata()[i])) for i in range(imin, imax)]
+            delta = [np.sqrt((x - pix_point_x) ** 2 + (y - pix_point_y) ** 2) for x, y in data]
+
+            results.append((np.argmin(delta) + imin, np.min(delta), curve))
+
+        ind_dist, min_dist, curve = results[np.argmin([mini for argmin, mini, curve in results])]
+        valx, valy = curve.get_xdata()[ind_dist], curve.get_ydata()[ind_dist]
+
+        labelPoint = QLabel(self)
+        labelPoint.setText('%s \r\n %s : %g' % (num2date(valx).isoformat()[:19], curve.label, valy))
+        labelPoint.move(event.x(), event.y())
+        labelPoint.show()
+
+        point, = curve.getAxes().plot(valx, valy, 'o', color='k', markersize=4.)
+
+        curve.getAxes().draw_artist(point)
+        self.fig.canvas.blit(self.fig.bbox)
+
+        self.plotWindow.pointList.append(Point(point, labelPoint))
+
+        timer = QTimer.singleShot(10000, partial(self.removePoint, self.plotWindow.pointList[-1]))
+
+    def mouseMoveEvent(self, event):
+        FigureCanvas.mouseMoveEvent(self, event)
 
     def close(self, *args, **kwargs):
         for widget in [self.toolbar, self.smartScale]:
@@ -389,3 +444,7 @@ class Graph(FigureCanvas):
             widget.deleteLater()
 
         FigureCanvas.close(self, *args, **kwargs)
+
+    def removePoint(self, point):
+        self.plotWindow.pointList.remove(point)
+        self.doArtist()
