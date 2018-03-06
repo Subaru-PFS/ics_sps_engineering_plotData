@@ -134,9 +134,6 @@ class Graph(FigureCanvas):
     @draw
     def removeCurve(self, curve):
 
-        self.removeLine(curve)
-        if curve.watcher:
-            curve.watcher.stop()
         del curve
 
     @draw
@@ -145,19 +142,10 @@ class Graph(FigureCanvas):
 
     def switchCurve(self, axes, curve):
 
-        self.removeLine(curve)
+        curve.removeLine()
         curve.setAxes(axes)
 
         self.plotCurves(curve)
-
-    def removeLine(self, curve):
-        line = curve.line
-        if line:
-            lines = curve.getAxes().lines
-
-            lines.remove(line)
-            del line
-            curve.line = False
 
     def relim(self):
 
@@ -275,7 +263,8 @@ class Graph(FigureCanvas):
 
         if not self.onDrawing:
             self.onDrawing = 'doDraw' if doDraw else 'doArtist'
-            timer = QTimer.singleShot(5000, self.doDraw)
+            delay = 5000 if doDraw else 1000
+            timer = QTimer.singleShot(delay, self.doDraw)
 
         else:
             self.onDrawing = 'doDraw' if doDraw else self.onDrawing

@@ -37,6 +37,11 @@ class Curve(Line2D):
         if not self.idend:
             self.startUpdating()
 
+    def __del__(self):
+        self.removeLine()
+        if self.watcher:
+            self.stop()
+
     @property
     def graph(self):
         return self.plotWindow.graph
@@ -99,6 +104,13 @@ class Curve(Line2D):
         if self.line:
             self.line.set_color(self.color)
             self.graph.fig.canvas.draw()
+
+    def removeLine(self):
+
+        if self.line:
+            self.ax.lines.remove(self.line)
+            del self.line
+            self.line = False
 
     def getExtremum(self, values):
 
