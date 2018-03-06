@@ -16,8 +16,8 @@ def computeScale(t, data):
         if (n - m) > 0:
             inter = ydata[m:n]
             mean = np.mean(inter)
-            res = np.sort(
-                m + np.array([np.argmin(np.abs(inter - mean)), np.argmax(inter - mean), np.argmax(mean - inter)]))
+            res = np.sort(m + np.array([np.argmin(np.abs(inter - mean)),
+                                        np.argmax(inter - mean), np.argmax(mean - inter)]))
             table_x[3 * i: 3 * i + 3] = xdata[res]
             table_y[3 * i: 3 * i + 3] = ydata[res]
 

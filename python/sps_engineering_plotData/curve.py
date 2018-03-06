@@ -111,25 +111,3 @@ class Curve(Line2D):
     def restart(self):
         self.getData()
         self.watcher.start()
-
-
-class Point(object):
-    def __init__(self, line, label):
-        object.__init__(self)
-        self.line = line
-        self.label = label
-
-    def __del__(self):
-
-        self.removePoint()
-
-    def removePoint(self):
-        try:
-            ax = self.line.axes
-            ax.lines.remove(self.line)
-            del self.line
-            self.label.hide()
-            self.label.close()
-            self.label.deleteLater()
-        except ValueError:
-            pass

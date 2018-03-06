@@ -15,8 +15,7 @@ from functools import partial
 from figure import PFigure
 from transform import make_format, indFinder
 from navigationtoolbar import NavigationToolbar
-from curve import Point
-
+from widgets import VCursor, ExtraLine
 from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 
@@ -54,17 +53,26 @@ class Graph(FigureCanvas):
 
         self.toolbar = NavigationToolbar(self, self.plotWindow)
         self.smartScale = self.getSmartScale()
+        self.VCursor = VCursor(self)
 
         self.buildAxes(customAxe)
 
         toolbarLayout.addWidget(self.toolbar)
         toolbarLayout.addWidget(self.smartScale)
+        toolbarLayout.addWidget(self.VCursor)
 
         self.plotWindow.graph_layout.addLayout(toolbarLayout)
 
     @property
     def allAxes(self):
         return self.plotWindow.allAxes
+
+    @property
+    def primaryAxes(self):
+        idAxes = []
+        idAxes += ([0] if 0 in self.allAxes.keys() else [])
+        idAxes += ([2] if 2 in self.allAxes.keys() else [])
+        return idAxes
 
     @property
     def isZoomed(self):
@@ -286,7 +294,7 @@ class Graph(FigureCanvas):
             for background in self.bck:
                 self.fig.canvas.restore_region(background)
 
-            lines = [curve.line for curve in self.curvesOnAxes + self.plotWindow.pointList]
+            lines = [curve.line for curve in self.curvesOnAxes + self.plotWindow.extraLines]
 
             for line in lines:
                 axes = line.axes
@@ -301,15 +309,15 @@ class Graph(FigureCanvas):
         fontsize = 10 if 2 in self.allAxes.keys() else 12
         for id, ax in self.allAxes.items():
             try:
-                primAxe = not id % 2
+                primAxess = not id % 2
                 curve = self.plotWindow.axes2curves[ax][0]
                 ax.set_ylabel(curve.ylabel, color=curve.color, fontsize=fontsize)
                 self.setTickLocator(ax)
 
                 for tick in (ax.yaxis.get_major_ticks() + ax.yaxis.get_minor_ticks()):
-                    self.pimpTicks(tick, primAxe, curve.color)
+                    self.pimpTicks(tick, primAxess, curve.color)
 
-                [maj_style, min_style, alpha2] = ['--', '-', 0.15] if primAxe else [':', '-.', 0.1]
+                [maj_style, min_style, alpha2] = ['--', '-', 0.15] if primAxess else [':', '-.', 0.1]
 
                 ax.grid(which='major', alpha=0.6, color=curve.color, linestyle=maj_style)
                 ax.grid(which='minor', alpha=alpha2, color=curve.color, linestyle=min_style)
@@ -323,19 +331,20 @@ class Graph(FigureCanvas):
     def addLegend(self):
         if not self.allAxes.items():
             return
+
         t0, tmax = self.allAxes[0].get_xlim()
 
-        for sub in range(2):
+        for axesId in self.primaryAxes:
             cvs = []
             for twin in range(2):
                 try:
-                    ax = self.allAxes[2 * sub + twin]
+                    ax = self.allAxes[axesId + twin]
                     cvs += self.plotWindow.axes2curves[ax]
                 except KeyError:
                     pass
 
             try:
-                self.allAxes[2 * sub].get_legend().remove()
+                self.allAxes[axesId].get_legend().remove()
             except (AttributeError, KeyError):
                 pass
 
@@ -349,12 +358,12 @@ class Graph(FigureCanvas):
 
                 toSort.sort(key=lambda row: row[0])
 
-                lns = [tup[1] for tup in reversed(toSort)]
-                labs = [tup[2] for tup in reversed(toSort)]
+                lns = [line for pix, line, label in reversed(toSort)]
+                labs = [line.get_label() for line in lns]
 
                 size = 8.5 - 0.12 * len(lns)
 
-                self.allAxes[2 * sub].legend(lns, labs, loc='best', prop={'size': size})
+                self.allAxes[axesId].legend(lns, labs, loc='best', prop={'size': size})
 
     def setTickLocator(self, ax):
 
@@ -370,18 +379,18 @@ class Graph(FigureCanvas):
         minor_locatorx = ticker.AutoMinorLocator(5)
         ax.xaxis.set_minor_locator(minor_locatorx)
 
-    def pimpTicks(self, tick, primAxe, color):
-        tick.label1On = True if primAxe else False
-        tick.label2On = False if primAxe else True
+    def pimpTicks(self, tick, primAxes, color):
+        tick.label1On = True if primAxes else False
+        tick.label2On = False if primAxes else True
 
-        coloredTick = tick.label1 if primAxe else tick.label2
+        coloredTick = tick.label1 if primAxes else tick.label2
         coloredTick.set_color(color=color)
 
-    def pimpGrid(self, tick, primAxe, color):
-        tick.label1On = True if primAxe else False
-        tick.label2On = False if primAxe else True
+    def pimpGrid(self, tick, primAxes, color):
+        tick.label1On = True if primAxes else False
+        tick.label2On = False if primAxes else True
 
-        coloredTick = tick.label1 if primAxe else tick.label2
+        coloredTick = tick.label1 if primAxes else tick.label2
         coloredTick.set_color(color=color)
 
     def getSmartScale(self):
@@ -424,7 +433,9 @@ class Graph(FigureCanvas):
 
         labelPoint = QLabel(self)
         labelPoint.setText('%s \r\n %s : %g' % (num2date(valx).isoformat()[:19], curve.label, valy))
-        labelPoint.move(event.x(), event.y())
+        offset = 0 if (event.x() + labelPoint.width()) < self.frameSize().width() else labelPoint.width()
+
+        labelPoint.move(event.x() - offset, event.y())
         labelPoint.show()
 
         point, = curve.getAxes().plot(valx, valy, 'o', color='k', markersize=4.)
@@ -432,30 +443,35 @@ class Graph(FigureCanvas):
         curve.getAxes().draw_artist(point)
         self.fig.canvas.blit(self.fig.bbox)
 
-        self.plotWindow.pointList.append(Point(point, labelPoint))
+        extraLine = ExtraLine(point, labelPoint)
+        self.plotWindow.extraLines.append(extraLine)
 
-        timer = QTimer.singleShot(10000, partial(self.removePoint, self.plotWindow.pointList[-1]))
+        timer = QTimer.singleShot(10000, partial(self.removeExtraLine, extraLine))
 
     def mouseMoveEvent(self, event):
         FigureCanvas.mouseMoveEvent(self, event)
+        self.VCursor.moveLines(x=event.x(),
+                               y=self.frameSize().height() - event.y())
 
     def close(self, *args, **kwargs):
-        for widget in [self.toolbar, self.smartScale]:
+        for widget in [self.toolbar, self.smartScale, self.VCursor]:
             widget.close()
             widget.deleteLater()
 
         FigureCanvas.close(self, *args, **kwargs)
 
-    def removePoint(self, point):
-        self.plotWindow.pointList.remove(point)
-        self.doArtist()
+    def removeExtraLine(self, extraLine, doArtist=True):
+        self.plotWindow.extraLines.remove(extraLine)
+        if doArtist:
+            self.doArtist()
 
     def hideExtraLines(self):
-        for line in [point.line for point in self.plotWindow.pointList]:
+        for line in [point.line for point in self.plotWindow.extraLines]:
             line.set_visible(False)
 
     def showExtraLines(self):
-        for line in [point.line for point in self.plotWindow.pointList]:
+        for line in [point.line for point in self.plotWindow.extraLines]:
             line.set_visible(True)
 
-        self.doArtist()
+        if self.allAxes.keys():
+            self.doArtist()

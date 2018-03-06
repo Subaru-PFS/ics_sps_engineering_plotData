@@ -16,7 +16,7 @@ class PlotWindow(QWidget):
         self.tab = tab
         self.allAxes = {}
         self.curveList = []
-        self.pointList = []
+        self.extraLines = []
         self.layout = QHBoxLayout()
         self.graph_layout = QVBoxLayout()
         self.gbox_layout = QVBoxLayout()
@@ -94,14 +94,12 @@ class PlotWindow(QWidget):
                 raise ValueError('No Axe available')
         return i + 1
 
-    def setAxes(self, axes):
+    def setAxes(self, allAxes):
+        for idAxes, oldAxes in list(self.allAxes.items()):
+            self.unsetLines(oldAxes, allAxes)
+            self.allAxes.pop(idAxes, None)
 
-        while self.allAxes.keys():
-            key = [key for key in self.allAxes.keys()][0]
-            self.unsetLines(self.allAxes[key], axes)
-            self.allAxes.pop(key, None)
-
-        self.allAxes = axes
+        self.allAxes = allAxes
 
     def unsetLines(self, axes, newAxes):
         while axes.lines:

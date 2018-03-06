@@ -3,8 +3,9 @@
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
+import numpy as np
 
-from transform import indFinder
+from transform import computeScale
 
 
 class PFigure(Figure):
@@ -21,6 +22,7 @@ class PFigure(Figure):
             self.subplots_adjust(hspace=0.05)
 
             self.graph.hideExtraLines()
+            self.setLineData()
             Figure.draw(self, event)
             self.graph.bck = self.saveBackground()
             self.graph.showExtraLines()
@@ -32,11 +34,8 @@ class PFigure(Figure):
         self.locked = False
 
     def saveBackground(self):
-        if self.graph.allAxes.keys():
-            idAxes = [0, 2] if 2 in self.graph.allAxes.keys() else [0]
-            bck = [self.canvas.copy_from_bbox(self.graph.allAxes[idAx].bbox) for idAx in idAxes]
-        else:
-            bck = None
+
+        bck = [self.canvas.copy_from_bbox(self.graph.allAxes[idAxes].bbox) for idAxes in self.graph.primaryAxes]
 
         return bck
 
@@ -63,26 +62,18 @@ class PFigure(Figure):
         dateAxes.xaxis.set_major_formatter(DateFormatter(format_date))
         plt.setp(dateAxes.xaxis.get_majorticklabels(), rotation=20, horizontalalignment='center')
 
-    def setLineData(self):
+    def setLineData(self, maxPt=200):
+        if not self.graph.allAxes.keys():
+            return
 
         tmin, tmax = self.graph.allAxes[0].get_xlim()
         delta = tmax - tmin
         tmin -= delta * 0.05
         tmax += delta * 0.05
 
-        for curve in self.graph.plotWindow.curveList:
-            imin = indFinder(curve.get_xdata(), tmin)
-            imax = indFinder(curve.get_xdata(), tmax)
-            curve.currLine.set_data(curve.get_xdata()[imin:imax + 1], curve.get_ydata()[imin:imax + 1])
+        step = delta / maxPt
+        time = np.arange(tmin - step, tmax + step, step)
 
-            # from matplotlib.dates import num2date
-            # print (num2date(tmin))
-            # maxPt = 700
-            # step = (tmax - tmin) / maxPt
-            # time = np.arange(tmin - step, tmax + step, step)
-            #
-            # for curve in self.graph.plotWindow.curveList:
-            #     if self.graph.smartScale.isChecked():
-            #         curve.currLine.set_data(computeScale(time, curve.get_data()))
-            #     else:
-            #         curve.currLine.set_data(curve.get_data())
+        for curve in self.graph.curvesOnAxes:
+            data = computeScale(time, curve.get_data()) if self.graph.smartScale.isChecked() else curve.get_data()
+            curve.line.set_data(data)
