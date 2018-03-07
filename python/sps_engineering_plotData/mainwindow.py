@@ -9,8 +9,8 @@ from functools import partial
 from PyQt5.QtWidgets import QGroupBox, QFileDialog, QMainWindow, QAction, QMessageBox
 
 from sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
-import sps_engineering_Lib_dataQuery as dataQuery
-import sps_engineering_plotData.img as imgFolder
+
+import sps_engineering_plotData
 from sps_engineering_plotData.widgets import PIcon
 from sps_engineering_plotData.tabwidget import PTabWidget
 
@@ -24,9 +24,8 @@ class MainWindow(QMainWindow):
     def __init__(self, ip, port):
         super(MainWindow, self).__init__()
 
-        self.configPath = '%s/config/' % os.path.dirname(dataQuery.__file__)
-        self.imgPath = '%s/' % os.path.dirname(imgFolder.__file__)
-
+        self.imgPath = '%s/' % os.path.abspath(os.path.join(os.path.dirname(sps_engineering_plotData.__file__),
+                                                            '../..', 'img'))
         self.db = DatabaseManager(ip, port)
         self.db.init()
 
@@ -49,14 +48,12 @@ class MainWindow(QMainWindow):
         self.icon_delete = PIcon(self.imgPath + 'delete.png')
 
     def getWidgets(self):
-
         self.tabWidget = PTabWidget(self)
 
         self.getMenu()
         self.setCentralWidget(self.tabWidget)
 
     def getMenu(self):
-
         self.menubar = self.menuBar()
         self.database_action = QAction('Database', self)
         self.curves_action = QAction('Update Configuration', self)
@@ -90,12 +87,10 @@ class MainWindow(QMainWindow):
         #         unpickler = pickle.Unpickler(fichier)
         #         customLayout = unpickler.load()
 
-
     def saveLayout(self):
         pass
 
     def showError(self, error):
-
         reply = QMessageBox.critical(self, 'Exception', error, QMessageBox.Ok)
 
     def showInformation(self, information):
