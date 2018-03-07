@@ -259,11 +259,11 @@ class Graph(FigureCanvas):
 
         return doDraw
 
-    def displayLine(self, doDraw):
+    def displayLine(self, doDraw, delay=5000):
 
         if not self.onDrawing:
             self.onDrawing = 'doDraw' if doDraw else 'doArtist'
-            delay = 5000 if doDraw else 1000
+            delay = delay if doDraw else 1000
             timer = QTimer.singleShot(delay, self.doDraw)
 
         else:
@@ -417,6 +417,8 @@ class Graph(FigureCanvas):
 
             results.append((np.argmin(delta) + imin, np.min(delta), curve))
 
+        if not results:
+            return
         ind_dist, min_dist, curve = results[np.argmin([mini for argmin, mini, curve in results])]
         valx, valy = curve.get_xdata()[ind_dist], curve.get_ydata()[ind_dist]
 

@@ -104,6 +104,10 @@ class VCursor(QPushButton):
     def plotWindow(self):
         return self.graph.plotWindow
 
+    @property
+    def fig(self):
+        return self.graph.fig
+
     def cursorOn(self):
         if self.isChecked():
             if not self.graph.allAxes.keys():
@@ -177,3 +181,22 @@ class VCursor(QPushButton):
         vLine.label.show()
 
         return (vLine.label.height()) / 2
+
+    def doArtist(self):
+        try:
+            for background in self.graph.bck:
+                self.fig.canvas.restore_region(background)
+
+            lines = [curve.line for curve in self.plotWindow.extraLines]
+
+            for line in lines:
+                axes = line.axes
+                axes.draw_artist(line)
+
+            self.fig.canvas.blit(self.fig.bbox)
+
+        except (RuntimeError, AttributeError):
+            pass
+
+        self.graph.displayLine(doDraw=True, delay=15000)
+

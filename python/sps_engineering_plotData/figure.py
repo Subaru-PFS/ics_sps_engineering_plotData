@@ -62,7 +62,7 @@ class PFigure(Figure):
         dateAxes.xaxis.set_major_formatter(DateFormatter(format_date))
         plt.setp(dateAxes.xaxis.get_majorticklabels(), rotation=20, horizontalalignment='center')
 
-    def setLineData(self, maxPt=200):
+    def setLineData(self, maxPt=800):
         if not self.graph.allAxes.keys():
             return
 
