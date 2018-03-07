@@ -59,6 +59,7 @@ class Curve(Line2D):
         return self.comboColor.color
 
     def getData(self, start=False):
+
         try:
             dataset = self.db.dataBetween(table=self.tablename,
                                           cols=self.key,
@@ -70,13 +71,15 @@ class Curve(Line2D):
             dates = dataset['tai'].as_matrix()
             mask = self.checkValues(values)
             xdata, ydata = dates[mask], values[mask]
-            self.getExtremum(ydata)
 
             self.set_data(np.append(self.get_xdata(), xdata), np.append(self.get_ydata(), ydata))
             self.idstart = dataset['id'].as_matrix()[-1]
 
             if not start:
                 self.graph.updatePlot(self, xdata, ydata)
+            else:
+                if not len(self.get_xdata()):
+                    raise Exception("All values are NaN")
 
         except ValueError as e:
             pass
@@ -111,11 +114,6 @@ class Curve(Line2D):
             self.ax.lines.remove(self.line)
             del self.line
             self.line = False
-
-    def getExtremum(self, values):
-
-        cmin, cmax = self.extremum
-        self.extremum = np.min([cmin, np.min(values)]), np.max([cmax, np.max(values)])
 
     def stop(self):
         self.watcher.stop()
