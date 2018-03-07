@@ -2,7 +2,7 @@ import six
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 
 import figureoptions
-from qt_compat import QtWidgets
+from matplotlib.backends.qt_compat import QtWidgets
 
 
 class NavigationToolbar(NavigationToolbar2QT):
@@ -20,7 +20,6 @@ class NavigationToolbar(NavigationToolbar2QT):
             return 1
         else:
             return 0
-
 
     def setNewHome(self, limits):
 
