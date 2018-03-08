@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QGroupBox, QFileDialog, QMainWindow, QAction, QMessa
 
 from sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 
-import sps_engineering_plotData
+import sps_engineering_plotData as plotData
 from sps_engineering_plotData.widgets import PIcon
 from sps_engineering_plotData.tabwidget import PTabWidget
 
@@ -24,8 +24,7 @@ class MainWindow(QMainWindow):
     def __init__(self, ip, port):
         super(MainWindow, self).__init__()
 
-        self.imgPath = '%s/' % os.path.abspath(os.path.join(os.path.dirname(sps_engineering_plotData.__file__),
-                                                            '../..', 'img'))
+        self.imgPath = '%s/img/' % os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..'))
         self.db = DatabaseManager(ip, port)
         self.db.init()
 
