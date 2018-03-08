@@ -2,17 +2,14 @@
 # encoding: utf-8
 
 
-import pickle
 import os
 from functools import partial
 
-from PyQt5.QtWidgets import QGroupBox, QFileDialog, QMainWindow, QAction, QMessageBox
-
-from sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
-
 import sps_engineering_plotData as plotData
-from sps_engineering_plotData.widgets import PIcon
+from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox
+from sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 from sps_engineering_plotData.tabwidget import PTabWidget
+from sps_engineering_plotData.widgets import PIcon
 
 
 class MainWindow(QMainWindow):
@@ -24,7 +21,7 @@ class MainWindow(QMainWindow):
     def __init__(self, ip, port):
         super(MainWindow, self).__init__()
 
-        self.imgPath = '%s/img/' % os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..'))
+        self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
         self.db = DatabaseManager(ip, port)
         self.db.init()
 
@@ -38,13 +35,13 @@ class MainWindow(QMainWindow):
         self.show()
 
     def getIcons(self):
-        self.icon_arrow_left = PIcon(self.imgPath + 'arrow_left.png')
-        self.icon_arrow_right = PIcon(self.imgPath + 'arrow_right.png')
-        self.icon_vcursor = PIcon(self.imgPath + 'xy2.png')
-        self.icon_vcursor_on = PIcon(self.imgPath + 'xy2_on.png')
-        self.icon_fit = PIcon(self.imgPath + 'infini.png')
-        self.icon_calendar = PIcon(self.imgPath + 'calendar.png')
-        self.icon_delete = PIcon(self.imgPath + 'delete.png')
+        self.icon_arrow_left = PIcon('%s/%s' % (self.imgPath, 'arrow_left.png'))
+        self.icon_arrow_right = PIcon('%s/%s' % (self.imgPath, 'arrow_right.png'))
+        self.icon_vcursor = PIcon('%s/%s' % (self.imgPath, 'xy2.png'))
+        self.icon_vcursor_on = PIcon('%s/%s' % (self.imgPath, 'xy2_on.png'))
+        self.icon_fit = PIcon('%s/%s' % (self.imgPath, 'infini.png'))
+        self.icon_calendar = PIcon('%s/%s' % (self.imgPath, 'calendar.png'))
+        self.icon_delete = PIcon('%s/%s' % (self.imgPath, 'delete.png'))
 
     def getWidgets(self):
         self.tabWidget = PTabWidget(self)
