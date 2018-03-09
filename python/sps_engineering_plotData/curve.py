@@ -101,6 +101,7 @@ class Curve(Line2D):
 
     def checkValues(self, values):
         l_range, u_range = self.ranges
+        values[values == None] = l_range - 1
         return np.logical_and(values >= l_range, values <= u_range)
 
     def updateColor(self):
