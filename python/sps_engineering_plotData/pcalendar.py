@@ -26,20 +26,26 @@ class Calendar(QWidget):
         gbCalendar.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
         gbDataset.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
 
+        self.confAuto = QCheckBox('Configuration : Auto')
         self.checkboxRealTime = QCheckBox('Real-time')
         self.checkboxPastRuns = QCheckBox('Archived')
         self.spinboxDays = QSpinBox()
         self.spinboxDays.setRange(1, 100)
         self.spinboxDays.setValue(1)
+
+        self.confAuto.setChecked(0)
+
+        self.confAuto.stateChanged.connect(self.dateplot.loadConf)
         self.checkboxRealTime.stateChanged.connect(self.realtime)
         self.checkboxPastRuns.stateChanged.connect(self.archivedData)
 
         self.checkboxRealTime.setCheckState(2)
         layoutDataset = QGridLayout()
-        layoutDataset.addWidget(self.checkboxRealTime, 0, 0, 2, 1)
-        layoutDataset.addWidget(QLabel('Duration (Days)'), 2, 1, 1, 1)
-        layoutDataset.addWidget(self.checkboxPastRuns, 3, 0, 1, 1)
-        layoutDataset.addWidget(self.spinboxDays, 3, 1, 1, 1)
+        layoutDataset.addWidget(self.confAuto, 0, 0, 2, 1)
+        layoutDataset.addWidget(self.checkboxRealTime, 2, 0, 2, 1)
+        layoutDataset.addWidget(QLabel('Duration (Days)'), 4, 1, 1, 1)
+        layoutDataset.addWidget(self.checkboxPastRuns, 5, 0, 1, 1)
+        layoutDataset.addWidget(self.spinboxDays, 5, 1, 1, 1)
 
         layoutCalendar = QVBoxLayout()
         layoutCalendar.addWidget(self.cal)
@@ -114,7 +120,11 @@ class DatePlot(QWidget):
         datestr = self.dateStr.text()
         if len(datestr) in [10, 16]:
             self.datetime = str2date(datestr)
-            self.config = loadConf(self.dateStr.text())
+            if not self.cal.confAuto.isChecked():
+                self.config = loadConf(self.dateStr.text())
+            else:
+                self.config = self.mainwindow.db.pollDbConf(self.dateStr.text())
+
             self.plotWindow.constructGroupbox(self.config)
         else:
             pass

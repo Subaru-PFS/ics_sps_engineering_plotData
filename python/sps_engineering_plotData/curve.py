@@ -25,7 +25,6 @@ class Curve(Line2D):
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
         self.yscale = 'linear' if 'pressure' not in self.type else 'log'
-        self.extremum = np.inf, -np.inf
 
         self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
         if not self.dateplot.realtime:
@@ -101,7 +100,6 @@ class Curve(Line2D):
 
     def checkValues(self, values):
         l_range, u_range = self.ranges
-        values[values == None] = l_range - 1
         return np.logical_and(values >= l_range, values <= u_range)
 
     def updateColor(self):
