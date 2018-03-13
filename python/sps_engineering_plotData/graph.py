@@ -180,24 +180,30 @@ class Graph(FigureCanvas):
 
     def get_ylim(self, axes):
         curves = self.plotWindow.axes2curves[axes]
+        logy = True if axes.get_yscale() == 'log' else False
 
         try:
             ymin = np.min([np.min(curve.get_ydata()) for curve in curves])
             ymax = np.max([np.max(curve.get_ydata()) for curve in curves])
 
-            ymin, ymax = self.calc_lim(ymin, ymax)
+            ymin, ymax = self.calc_lim(ymin, ymax, logy=logy)
 
         except ValueError:
             (ymin, ymax) = (0.0, 1.0)
 
         return ymin, ymax
 
-    def calc_lim(self, dmin, dmax, f1=0.05, f2=0.05):
+    def calc_lim(self, dmin, dmax, logy=False, f1=0.05, f2=0.05):
 
-        delta = (dmax - dmin)
+        if not logy:
+            delta = (dmax - dmin)
 
-        dmin -= (f1 * delta)
-        dmax += (f2 * delta)
+            dmin -= (f1 * delta)
+            dmax += (f2 * delta)
+        else:
+
+            dmin = 1.0 * 10 ** (np.floor(np.log10(dmin)))
+            dmax = 1.0 * 10 ** (np.ceil(np.log10(dmax)))
 
         return dmin, dmax
 
