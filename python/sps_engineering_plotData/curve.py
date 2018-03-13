@@ -107,6 +107,13 @@ class Curve(Line2D):
             self.line.set_color(self.color)
             self.graph.fig.canvas.draw()
 
+
+    def updateProp(self, yscale,label,ylabel,color):
+        self.yscale = yscale
+        self.label = label
+        self.ylabel = ylabel
+        self.comboColor.newColor(color)
+
     def removeLine(self):
 
         if self.line:

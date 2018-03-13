@@ -28,7 +28,6 @@ def draw(func):
         self.fig.lock()
 
         ret = func(self, *args, **kwargs)
-        self.checkScales()
         self.relim()
 
         self.fig.unlock()
@@ -101,7 +100,7 @@ class Graph(FigureCanvas):
                 axes.format_coord = make_format(axes, AllAxes[2])
             try:
                 oldAxes = self.allAxes[newAxes.id]
-
+                axes.set_yscale(oldAxes.get_yscale())
                 for curve in oldAffect[oldAxes]:
                     curve.setAxes(axes)
 
@@ -203,10 +202,11 @@ class Graph(FigureCanvas):
         return dmin, dmax
 
     def checkScales(self):
+
         for id, ax in self.allAxes.items():
             comboScale = self.plotWindow.customize.allAxes[id].comscale
             if ax.get_yscale() != comboScale.currentText():
-                ax.set_yscale(comboScale.currentText())
+                comboScale.setCurrentText(ax.get_yscale())
 
     def setNewScale(self, curve):
         axes = curve.getAxes()

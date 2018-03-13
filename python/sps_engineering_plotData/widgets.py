@@ -20,15 +20,9 @@ class PIcon(QIcon):
 class ComboColor(QComboBox):
     def __init__(self, index):
         QComboBox.__init__(self)
-        for i, colors in enumerate(colorList):
-            label = QIcon()
-            color = QColor()
-            color.setNamedColor(colors)
-            pixmap = QPixmap(20, 20)
-            pixmap.fill(color)
-            label.addPixmap(pixmap)
-            self.addItem('')
-            self.setItemIcon(i, label)
+
+        for color in colorList:
+            self.addColor(color)
 
         self.setFixedWidth(45)
         self.setCurrentIndex(index % len(colorList))
@@ -37,6 +31,31 @@ class ComboColor(QComboBox):
     def color(self):
         return colorList[self.currentIndex()]
 
+    def addColor(self, color):
+
+        self.addItem('')
+        self.setItemIcon(self.count()-1, PQColor(color))
+
+    def newColor(self, color):
+        color = color[:-2]
+        if color not in colorList:
+            colorList.append(color)
+            self.addColor(color)
+
+        for i, col in enumerate(colorList):
+            if col == color:
+                break
+
+        self.setCurrentIndex(i)
+
+class PQColor(QIcon):
+    def __init__(self, color):
+        QIcon.__init__(self)
+        qcolor = QColor()
+        qcolor.setNamedColor(color)
+        pixmap = QPixmap(20, 20)
+        pixmap.fill(qcolor)
+        self.addPixmap(pixmap)
 
 class PQCheckBox(QCheckBox):
     def __init__(self, tabActor, curveConf):
