@@ -22,8 +22,8 @@ class Curve(Line2D):
         self.unit = curveConf.unit
         self.tablename = curveConf.tablename
         self.key = curveConf.key
-        self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
+        self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
         self.yscale = 'linear' if 'pressure' not in self.type else 'log'
 
         self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
@@ -107,8 +107,7 @@ class Curve(Line2D):
             self.line.set_color(self.color)
             self.graph.fig.canvas.draw()
 
-
-    def updateProp(self, yscale,label,ylabel,color):
+    def updateProp(self, yscale, label, ylabel, color):
         self.yscale = yscale
         self.label = label
         self.ylabel = ylabel

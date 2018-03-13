@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
         self.icon_fit = PIcon('%s/%s' % (self.imgPath, 'infini.png'))
         self.icon_calendar = PIcon('%s/%s' % (self.imgPath, 'calendar.png'))
         self.icon_delete = PIcon('%s/%s' % (self.imgPath, 'delete.png'))
+        self.icon_refresh = PIcon('%s/%s' % (self.imgPath, 'refresh.png'))
 
     def getWidgets(self):
         self.tabWidget = PTabWidget(self)

@@ -95,9 +95,15 @@ class DatePlot(QWidget):
         self.choseDate.setIcon(self.mainwindow.icon_calendar)
         self.choseDate.clicked.connect(partial(self.cal.setVisible, True))
 
+        self.refresh = QPushButton(self)
+        self.refresh.setIcon(self.mainwindow.icon_refresh)
+        self.refresh.clicked.connect(self.tryDraw)
+
+
         self.layout = QGridLayout()
-        self.layout.addWidget(self.choseDate, 0, 0)
-        self.layout.addWidget(self.dateStr, 0, 1, 1, 5)
+        self.layout.addWidget(self.refresh, 0, 0)
+        self.layout.addWidget(self.choseDate, 0, 1)
+        self.layout.addWidget(self.dateStr, 0, 2, 1, 5)
 
         self.setLayout(self.layout)
 
@@ -127,4 +133,10 @@ class DatePlot(QWidget):
 
             self.plotWindow.constructGroupbox(self.config)
         else:
+            pass
+
+    def tryDraw(self):
+        try:
+            self.plotWindow.graph.fig.canvas.draw()
+        except AttributeError:
             pass
