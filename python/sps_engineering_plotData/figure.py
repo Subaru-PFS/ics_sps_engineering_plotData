@@ -11,27 +11,23 @@ from transform import computeScale
 class PFigure(Figure):
     def __init__(self, graph, width, height, dpi):
         Figure.__init__(self, figsize=(width, height), dpi=dpi)
+        self.editAxes = False
         self.graph = graph
-        self.locked = False
 
     def draw(self, event):
+        if self.editAxes:
+            self.graph.userCustom()
 
-        if not self.locked:
-            self.graph.colorStyle()
-            self.formatDate()
-            self.subplots_adjust(hspace=0.05)
+        self.graph.colorStyle()
+        self.formatDate()
+        self.subplots_adjust(hspace=0.05)
+        self.graph.hideExtraLines()
+        self.setLineData()
 
-            self.graph.hideExtraLines()
-            self.setLineData()
-            Figure.draw(self, event)
-            self.graph.bck = self.saveBackground()
-            self.graph.showExtraLines()
+        Figure.draw(self, event)
 
-    def lock(self):
-        self.locked = True
-
-    def unlock(self):
-        self.locked = False
+        self.graph.bck = self.saveBackground()
+        self.graph.showExtraLines()
 
     def saveBackground(self):
 
