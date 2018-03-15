@@ -261,7 +261,8 @@ class Graph(FigureCanvas):
                 newMax = newMax if newMax > (ymax - delta) else ymax
 
                 if not (newMin == ymin and newMax == ymax):
-                    ax.set_ylim(self.calc_lim(newMin, newMax))
+                    logy = True if ax.get_yscale() == 'log' else False
+                    ax.set_ylim(self.calc_lim(newMin, newMax, logy=logy))
                     doDraw = True
 
         return doDraw
