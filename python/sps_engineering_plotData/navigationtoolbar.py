@@ -1,13 +1,27 @@
-import six
+from matplotlib import cbook
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 
-import figureoptions
-from matplotlib.backends.qt_compat import QtWidgets
+
+class NStack(cbook.Stack):
+    def __init__(self):
+        cbook.Stack.__init__(self)
+
+    def updateHome(self, limits):
+        if not len(self._elements):
+            return
+
+        home = self._elements[0]
+        for axes, newView in limits.items():
+            view, (pos_orig, pos_active) = home[axes]
+            home[axes] = newView, (pos_orig, pos_active)
+
+        self._elements[0] = home
 
 
 class NavigationToolbar(NavigationToolbar2QT):
     def __init__(self, graph, plotWindow):
         NavigationToolbar2QT.__init__(self, graph, plotWindow)
+        self._nav_stack = NStack()
 
     def isZoomed(self):
         if self._active == 'ZOOM':
@@ -21,40 +35,10 @@ class NavigationToolbar(NavigationToolbar2QT):
         else:
             return 0
 
-    def setNewHome(self, limits):
-
-        saved = [view for view in self._views]
-        self._views.clear()
-
-        self._views.push(limits)
-        for i in range(1, len(saved)):
-            self._views.push(saved[i])
-
-    def getViewEmpty(self):
-        return self._views.empty()
-
     def edit_parameters(self):
-        allaxes = self.canvas.figure.get_axes()
-        if not allaxes:
-            QtWidgets.QMessageBox.warning(
-                self.parent, "Error", "There are no axes to edit.")
-            return
-        if len(allaxes) == 1:
-            axes = allaxes[0]
-        else:
-            titles = []
-            for axes in allaxes:
-                name = (axes.get_title() or
-                        " - ".join(filter(None, [axes.get_xlabel(),
-                                                 axes.get_ylabel()])) or
-                        "<anonymous {} (id: {:#x})>".format(
-                            type(axes).__name__, id(axes)))
-                titles.append(name)
-            item, ok = QtWidgets.QInputDialog.getItem(
-                self.parent, 'Customize', 'Select axes:', titles, 0, False)
-            if ok:
-                axes = allaxes[titles.index(six.text_type(item))]
-            else:
-                return
+        self.canvas.fig.editAxes = True
+        NavigationToolbar2QT.edit_parameters(self)
+        self.canvas.fig.editAxes = False
 
-        figureoptions.figure_edit(axes, self)
+    def setNewHome(self, limits):
+        self._nav_stack.updateHome(limits)

@@ -37,7 +37,7 @@ class ComboColor(QComboBox):
         self.setItemIcon(self.count()-1, PQColor(color))
 
     def newColor(self, color):
-        color = color[:-2]
+        color = color[:7]
         if color not in colorList:
             colorList.append(color)
             self.addColor(color)
@@ -212,7 +212,7 @@ class VCursor(QPushButton):
                 axes = line.axes
                 axes.draw_artist(line)
 
-            self.fig.canvas.blit(self.fig.bbox)
+            self.graph.doBlit()
 
         except (RuntimeError, AttributeError):
             pass

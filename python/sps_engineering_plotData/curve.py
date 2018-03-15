@@ -1,16 +1,21 @@
 import numpy as np
-from matplotlib.lines import Line2D
 from PyQt5.QtCore import QTimer
-
+from matplotlib import colors as mcolors
 from widgets import ComboColor
 
 
-class Curve(Line2D):
+class Curve(object):
     def __init__(self, plotWindow, curveConf):
-        Line2D.__init__(self, [], [], label=curveConf.label)
-        self.ax = None
+        object.__init__(self)
+        self.axes = None
         self.line = False
-        self.watcher = False
+
+        self.watcher = QTimer(plotWindow)
+        self.watcher.setInterval(2500)
+        self.watcher.timeout.connect(self.getData)
+
+        self.xdata = []
+        self.ydata = []
 
         self.plotWindow = plotWindow
         self.comboColor = ComboColor(len(self.plotWindow.curveList))
@@ -27,19 +32,20 @@ class Curve(Line2D):
         self.yscale = 'linear' if 'pressure' not in self.type else 'log'
 
         self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
+
         if not self.dateplot.realtime:
             self.idend = self.db.closestId(self.tablename, date=self.dateplot.dateEnd)
         else:
             self.idend = False
 
         self.getData(start=True)
+
         if not self.idend:
             self.startUpdating()
 
     def __del__(self):
         self.removeLine()
-        if self.watcher:
-            self.stop()
+        self.stop()
 
     @property
     def graph(self):
@@ -84,16 +90,13 @@ class Curve(Line2D):
             pass
 
     def startUpdating(self):
-        self.watcher = QTimer(self.plotWindow)
-        self.watcher.setInterval(2500)
-        self.watcher.timeout.connect(self.getData)
         self.watcher.start()
 
-    def setAxes(self, ax):
-        self.ax = ax
+    def setAxes(self, axes):
+        self.axes = axes
 
     def getAxes(self):
-        return self.ax
+        return self.axes
 
     def setLine(self, line):
         self.line = line
@@ -105,9 +108,14 @@ class Curve(Line2D):
     def updateColor(self):
         if self.line:
             self.line.set_color(self.color)
-            self.graph.fig.canvas.draw()
+            self.graph.draw_idle()
 
-    def updateProp(self, yscale, label, ylabel, color):
+    def updateProp(self):
+        yscale = self.axes.get_yscale()
+        ylabel = self.axes.get_ylabel()
+        label = self.line.get_label()
+        color = mcolors.to_hex(self.line.get_color())
+
         self.yscale = yscale
         self.label = label
         self.ylabel = ylabel
@@ -116,7 +124,7 @@ class Curve(Line2D):
     def removeLine(self):
 
         if self.line:
-            self.ax.lines.remove(self.line)
+            self.axes.lines.remove(self.line)
             del self.line
             self.line = False
 
@@ -126,3 +134,16 @@ class Curve(Line2D):
     def restart(self):
         self.getData()
         self.watcher.start()
+
+    def get_data(self):
+        return self.xdata, self.ydata
+
+    def set_data(self, xdata, ydata):
+        self.xdata = xdata
+        self.ydata = ydata
+
+    def get_xdata(self):
+        return self.xdata
+
+    def get_ydata(self):
+        return self.ydata

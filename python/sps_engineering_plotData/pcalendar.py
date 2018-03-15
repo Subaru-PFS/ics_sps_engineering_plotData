@@ -137,6 +137,6 @@ class DatePlot(QWidget):
 
     def tryDraw(self):
         try:
-            self.plotWindow.graph.fig.canvas.draw()
+            self.plotWindow.graph.draw_idle()
         except AttributeError:
             pass

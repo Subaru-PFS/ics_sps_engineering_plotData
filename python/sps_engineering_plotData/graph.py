@@ -25,13 +25,11 @@ plt.style.use('ggplot')
 
 def draw(func):
     def wrapper(self, *args, **kwargs):
-        self.fig.lock()
 
         ret = func(self, *args, **kwargs)
         self.relim()
-
-        self.fig.unlock()
-        self.figure.canvas.draw()
+        self.colorStyle()
+        self.draw_idle()
         return ret
 
     return wrapper
@@ -149,16 +147,19 @@ class Graph(FigureCanvas):
     def relim(self):
 
         tmin, tmax = self.get_xlim()
-        ylims = [self.get_ylim(ax) for ax in self.allAxes.values()]
+        limits = {}
 
-        limits = [(tmin, tmax, ymin, ymax) for ymin, ymax in ylims]
+        for ax in self.allAxes.values():
+            ymin, ymax = self.get_ylim(ax)
+            limits[ax] = (tmin, tmax, ymin, ymax)
 
         if not self.isZoomed:
-            for ax, (tmin, tmax, ymin, ymax) in zip(self.allAxes.values(), limits):
+            for ax, (tmin, tmax, ymin, ymax) in limits.items():
                 ax.set_xlim(tmin, tmax)
                 ax.set_ylim(ymin, ymax)
         else:
             self.toolbar.setNewHome(limits)
+
 
     def get_xlim(self):
 
@@ -278,7 +279,7 @@ class Graph(FigureCanvas):
     def doDraw(self):
 
         if self.onDrawing == 'doDraw':
-            self.fig.canvas.draw()
+            self.draw_idle()
         else:
             self.doArtist()
 
@@ -295,7 +296,7 @@ class Graph(FigureCanvas):
                 axes = line.axes
                 axes.draw_artist(line)
 
-            self.fig.canvas.blit(self.fig.bbox)
+            self.doBlit()
 
         except (RuntimeError, AttributeError):
             pass
@@ -392,7 +393,7 @@ class Graph(FigureCanvas):
 
         smartScale = QCheckBox('Enhance Performances')
         smartScale.setChecked(2)
-        smartScale.stateChanged.connect(self.fig.canvas.draw)
+        smartScale.stateChanged.connect(self.draw_idle)
         return smartScale
 
     def mouseDoubleClickEvent(self, event):
@@ -438,7 +439,7 @@ class Graph(FigureCanvas):
         point, = curve.getAxes().plot(valx, valy, 'o', color='k', markersize=4.)
 
         curve.getAxes().draw_artist(point)
-        self.fig.canvas.blit(self.fig.bbox)
+        self.doBlit()
 
         extraLine = ExtraLine(point, labelPoint)
         self.plotWindow.extraLines.append(extraLine)
@@ -470,5 +471,11 @@ class Graph(FigureCanvas):
         for line in [point.line for point in self.plotWindow.extraLines]:
             line.set_visible(True)
 
-        if self.allAxes.keys():
-            self.doArtist()
+    def doBlit(self):
+        self.fig.canvas.blit(self.fig.bbox)
+
+    def userCustom(self):
+        for curve in self.curvesOnAxes:
+            curve.updateProp()
+
+        self.checkScales()
