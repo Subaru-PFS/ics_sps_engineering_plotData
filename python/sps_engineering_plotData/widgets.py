@@ -1,8 +1,7 @@
 __author__ = 'alefur'
-from matplotlib.dates import num2date
 from PyQt5.QtGui import QPixmap, QIcon, QColor
 from PyQt5.QtWidgets import QComboBox, QCheckBox, QPushButton, QLabel
-
+from matplotlib.dates import num2date
 from transform import indFinder
 
 colorList = ['#1f78c5', '#ff801e', '#2ca13c', '#d82738', '#9568cf', '#8d565b', '#e578c3', '#17bfd1',
@@ -34,7 +33,7 @@ class ComboColor(QComboBox):
     def addColor(self, color):
 
         self.addItem('')
-        self.setItemIcon(self.count()-1, PQColor(color))
+        self.setItemIcon(self.count() - 1, PQColor(color))
 
     def newColor(self, color):
         color = color[:7]
@@ -48,6 +47,7 @@ class ComboColor(QComboBox):
 
         self.setCurrentIndex(i)
 
+
 class PQColor(QIcon):
     def __init__(self, color):
         QIcon.__init__(self)
@@ -56,6 +56,7 @@ class PQColor(QIcon):
         pixmap = QPixmap(20, 20)
         pixmap.fill(qcolor)
         self.addPixmap(pixmap)
+
 
 class PQCheckBox(QCheckBox):
     def __init__(self, tabActor, curveConf):
@@ -218,4 +219,3 @@ class VCursor(QPushButton):
             pass
 
         self.graph.displayLine(doDraw=True, delay=15000)
-

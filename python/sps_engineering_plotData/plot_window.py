@@ -2,11 +2,10 @@ from functools import partial
 
 from PyQt5.QtWidgets import QScrollArea, QComboBox, QDoubleSpinBox, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, \
     QPushButton, QGroupBox, QGridLayout
-
-from sps_engineering_plotData.pcalendar import DatePlot
-from sps_engineering_plotData.graph import Graph
-from sps_engineering_plotData.subplot import Customize
 from sps_engineering_plotData.curve import Curve
+from sps_engineering_plotData.graph import Graph
+from sps_engineering_plotData.pcalendar import DatePlot
+from sps_engineering_plotData.subplot import Customize
 from sps_engineering_plotData.widgets import PQCheckBox
 
 

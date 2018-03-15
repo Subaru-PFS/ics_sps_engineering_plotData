@@ -1,11 +1,9 @@
-from functools import partial
 import datetime as dt
-
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, \
-    QPushButton, QGroupBox, QCheckBox, QGridLayout, QLineEdit, QCalendarWidget, QLabel, QSpinBox
+from functools import partial
 
 from PyQt5.QtCore import QDate, Qt
-
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, \
+    QPushButton, QGroupBox, QCheckBox, QGridLayout, QLineEdit, QCalendarWidget, QLabel, QSpinBox
 from sps_engineering_Lib_dataQuery.confighandler import loadConf
 from sps_engineering_Lib_dataQuery.dates import str2date
 
@@ -98,7 +96,6 @@ class DatePlot(QWidget):
         self.refresh = QPushButton(self)
         self.refresh.setIcon(self.mainwindow.icon_refresh)
         self.refresh.clicked.connect(self.tryDraw)
-
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.refresh, 0, 0)

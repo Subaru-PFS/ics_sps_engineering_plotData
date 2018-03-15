@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import sys
 import argparse
+import sys
 
 from PyQt5.QtWidgets import QApplication
 from mainwindow import MainWindow

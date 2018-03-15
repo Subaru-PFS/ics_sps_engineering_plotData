@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-from matplotlib.dates import DateFormatter
 import numpy as np
-
+from matplotlib.dates import DateFormatter
+from matplotlib.figure import Figure
 from transform import computeScale
 
 

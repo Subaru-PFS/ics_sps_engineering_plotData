@@ -25,7 +25,6 @@ plt.style.use('ggplot')
 
 def draw(func):
     def wrapper(self, *args, **kwargs):
-
         ret = func(self, *args, **kwargs)
         self.relim()
         self.colorStyle()
@@ -157,9 +156,8 @@ class Graph(FigureCanvas):
             for ax, (tmin, tmax, ymin, ymax) in limits.items():
                 ax.set_xlim(tmin, tmax)
                 ax.set_ylim(ymin, ymax)
-        else:
-            self.toolbar.setNewHome(limits)
 
+        self.toolbar.setNewHome(limits)
 
     def get_xlim(self):
 

@@ -1,4 +1,5 @@
 from functools import partial
+
 from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout
 from plot_window import PlotWindow
 

@@ -44,7 +44,7 @@ class PTabWidget(QTabWidget):
         self.activeTab = False
         self.tabCloseRequested.connect(self.delTab)
         self.currentChanged.connect(self.changeTab)
-        #self.setTabsClosable(True)
+        # self.setTabsClosable(True)
 
         self.createTabBar()
 

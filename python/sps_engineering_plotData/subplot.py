@@ -110,12 +110,12 @@ class Customize(QGroupBox):
         axesId = Customize.axStr2id[curveRow.comboAxe.currentText()]
         self.plotWindow.switchCurve(axesId, curveRow.curve)
 
-
     def checkAvailable(self):
         self.allAxes[1].checkbox.setEnabled(self.allAxes[0].checkbox.isChecked())
         self.allAxes[3].checkbox.setEnabled(self.allAxes[2].checkbox.isChecked())
 
-        self.allAxes[2].checkbox.setEnabled(self.allAxes[0].checkbox.isChecked() and not self.allAxes[3].checkbox.isChecked())
+        self.allAxes[2].checkbox.setEnabled(
+            self.allAxes[0].checkbox.isChecked() and not self.allAxes[3].checkbox.isChecked())
 
         self.allAxes[0].checkbox.setEnabled(not self.allAxes[1].checkbox.isChecked())
 
@@ -145,7 +145,6 @@ class Subplot(QHBoxLayout):
         self.addWidget(self.checkbox)
         self.addWidget(self.comscale)
 
-
     @property
     def customAxes(self):
         return self.customize.customAxes
@@ -157,7 +156,6 @@ class Subplot(QHBoxLayout):
     @property
     def graph(self):
         return self.customize.plotWindow.graph
-
 
     def handleChecking(self):
 
@@ -173,4 +171,4 @@ class Subplot(QHBoxLayout):
         try:
             self.graph.updateScale(self.graph.allAxes[self.id], self.comscale.currentText())
         except Exception as e:
-            print (e)
+            print(e)
