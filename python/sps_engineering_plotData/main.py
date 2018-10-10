@@ -10,14 +10,16 @@ from mainwindow import MainWindow
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default='localhost', type=str, nargs='?',
+    parser.add_argument('--host', default='tron', type=str, nargs='?',
                         help='PostgreSQL host')
     parser.add_argument('--port', default=5432, type=int, nargs='?',
                         help='PostgreSQL port')
+    parser.add_argument('--password', default='', type=str, nargs='?',
+                        help='PostgreSQL password')
     args = parser.parse_args()
     app = QApplication(sys.argv)
 
-    w = MainWindow(args.host, args.port)
+    w = MainWindow(args.host, args.port, args.password)
     sys.exit(app.exec_())
 
 
