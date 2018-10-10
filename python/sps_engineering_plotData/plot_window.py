@@ -160,7 +160,8 @@ class PlotWindow(QWidget):
 
         sortedModule = self.sortCfg(config)
 
-        for actorname, config in sortedModule.items():
+        for actorname in sorted(sortedModule):
+            config = sortedModule[actorname]
             if config:
                 t = TabActor(self, config)
                 self.tabGBActor.addTab(t, actorname)
@@ -209,19 +210,23 @@ class PlotWindow(QWidget):
                 else:
                     self.clearLayout(item.layout())
 
+    def table2label(self, tablename, mergeAIT=False):
+        for key, label in self.mainwindow.cuArms.items():
+            if key in tablename:
+                return label
+        if mergeAIT:
+            return 'AIT'
+        else:
+            return tablename.split('__')[0].upper()
+
     def sortCfg(self, config):
-        sortedDict = {label: [] for label in list(self.mainwindow.cuArms.values()) + ['AIT']}
-
+        sortedDict = {}
         for dev in config:
-            found = False
-            for cuArm in list(self.mainwindow.cuArms.keys()):
-                if cuArm in dev.tablename:
-                    found = True
-                    break
-            cuLabel = self.mainwindow.cuArms[cuArm] if found else 'AIT'
-
-            sortedDict[cuLabel].append(dev)
-
+            label = self.table2label(tablename=dev.tablename, mergeAIT=False)
+            try:
+                sortedDict[label].append(dev)
+            except KeyError:
+                sortedDict[label] = [dev]
         return sortedDict
 
 

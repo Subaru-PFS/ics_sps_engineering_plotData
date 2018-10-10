@@ -13,10 +13,6 @@ from sps_engineering_plotData.widgets import PIcon
 
 
 class MainWindow(QMainWindow):
-    cuArms = {'_r1__': 'SM1 RCU',
-              '_b1__': 'SM1 BCU',
-              '_r0__': 'Thermal RCU',
-              }
 
     def __init__(self, ip, port):
         super(MainWindow, self).__init__()
@@ -25,6 +21,7 @@ class MainWindow(QMainWindow):
         self.db = DatabaseManager(ip, port)
         self.db.init()
 
+        self.cuArms = self.getCuArms()
         self.getIcons()
         self.getWidgets()
 
@@ -33,6 +30,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('ics_sps_engineering_plotData')
         self.showMaximized()
         self.show()
+
+    def getCuArms(self):
+        cuArms = []
+        for specId in [1, 2, 3, 4]:
+            cuArms += [('_%s%d__' % (arm, specId), 'SM%d %sCU' % (specId, arm.upper())) for arm in ['r', 'b', 'n']]
+        return dict(cuArms)
 
     def getIcons(self):
         self.icon_arrow_left = PIcon('%s/%s' % (self.imgPath, 'arrow_left.png'))
