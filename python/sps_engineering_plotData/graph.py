@@ -113,7 +113,8 @@ class Graph(FigureCanvas):
     def plot_date(self, curve):
         ax = curve.getAxes()
 
-        line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-', color=curve.color, label=curve.label)
+        line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-',
+                             color=curve.color, label='%s - %s' % (curve.deviceLabel, curve.label))
         curve.setLine(line)
 
         self.setNewScale(curve)
@@ -306,6 +307,7 @@ class Graph(FigureCanvas):
             try:
                 primAxess = not id % 2
                 curve = self.plotWindow.axes2curves[ax][0]
+                curve.ylabel = 'YAXIS_%d (..)' % id if curve.ylabel == '.. (-)' else curve.ylabel
                 ax.set_ylabel(curve.ylabel, color=curve.color, fontsize=fontsize)
                 self.setTickLocator(ax)
 
