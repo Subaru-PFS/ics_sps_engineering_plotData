@@ -117,7 +117,8 @@ class Customize(QGroupBox):
         self.allAxes[2].checkbox.setEnabled(
             self.allAxes[0].checkbox.isChecked() and not self.allAxes[3].checkbox.isChecked())
 
-        self.allAxes[0].checkbox.setEnabled(not self.allAxes[1].checkbox.isChecked())
+        self.allAxes[0].checkbox.setEnabled(not (self.allAxes[1].checkbox.isChecked() or
+                                                 self.allAxes[2].checkbox.isChecked()))
 
         self.cleanRows()
 
