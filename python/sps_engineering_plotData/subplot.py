@@ -11,7 +11,7 @@ class CurveRow():
         self.comboAxe = False
 
         self.buttonDelete = self.buttonDelete()
-        self.label = QLabel('%s - %s' % (curve.deviceLabel, curve.label))
+        self.label = QLabel(curve.label)
 
     @property
     def widgetList(self):

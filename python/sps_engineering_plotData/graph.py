@@ -113,8 +113,7 @@ class Graph(FigureCanvas):
     def plot_date(self, curve):
         ax = curve.getAxes()
 
-        line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-',
-                             color=curve.color, label='%s - %s' % (curve.deviceLabel, curve.label))
+        line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-', color=curve.color, label=curve.label)
         curve.setLine(line)
 
         self.setNewScale(curve)

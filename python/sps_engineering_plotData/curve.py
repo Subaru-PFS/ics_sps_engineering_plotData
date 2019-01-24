@@ -21,7 +21,7 @@ class Curve(object):
         self.comboColor = ComboColor(len(self.plotWindow.curveList))
         self.comboColor.currentIndexChanged.connect(self.updateColor)
         self.deviceLabel = curveConf.deviceLabel
-        self.label = curveConf.label
+        self.label = '%s - %s' % (curveConf.deviceLabel, curveConf.label)
         self.type = curveConf.type
         self.ylabel = curveConf.ylabel
         self.unit = curveConf.unit
