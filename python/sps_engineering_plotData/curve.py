@@ -34,7 +34,7 @@ class Curve(object):
         self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
 
         if not self.dateplot.realtime:
-            self.idend = self.db.closestId(self.tablename, date=self.dateplot.dateEnd)
+            self.idend = self.db.closestId(self.tablename, date=self.dateplot.dateEnd, reverse=True)
         else:
             self.idend = False
 
