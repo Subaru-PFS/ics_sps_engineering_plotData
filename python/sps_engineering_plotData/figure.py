@@ -63,11 +63,9 @@ class PFigure(Figure):
 
         tmin, tmax = self.graph.allAxes[0].get_xlim()
         delta = tmax - tmin
-        tmin -= delta * 0.05
-        tmax += delta * 0.05
 
         step = delta / maxPt
-        time = np.arange(tmin - step, tmax + step, step)
+        time = np.arange(tmin, tmax + step, step)
 
         for curve in self.graph.curvesOnAxes:
             data = computeScale(time, curve.get_data()) if self.graph.smartScale.isChecked() else curve.get_data()

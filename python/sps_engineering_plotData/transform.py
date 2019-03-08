@@ -14,12 +14,20 @@ def computeScale(t, data):
     for i in range(t.shape[0] - 1):
         m, n = np.searchsorted(xdata, t[i]), np.searchsorted(xdata, t[i + 1])
         if (n - m) > 0:
-            inter = ydata[m:n]
-            mean = np.mean(inter)
-            res = np.sort(m + np.array([np.argmin(np.abs(inter - mean)),
-                                        np.argmax(inter - mean), np.argmax(mean - inter)]))
+            inter = np.argsort(ydata[m:n])
+            res = np.sort(m + np.array([inter[0], inter[len(inter) // 2], inter[-1]]))
+
             table_x[3 * i: 3 * i + 3] = xdata[res]
             table_y[3 * i: 3 * i + 3] = ydata[res]
+
+    min, max = np.searchsorted(xdata, t[0]) - 1, np.searchsorted(xdata, t[-1]) + 1
+
+    if min > 0:
+        table_x = np.insert(table_x, 0, xdata[min])
+        table_y = np.insert(table_y, 0, ydata[min])
+    if max < len(xdata):
+        table_x = np.append(table_x, xdata[max])
+        table_y = np.append(table_y, ydata[max])
 
     return table_x[~np.isnan(table_x)], table_y[~np.isnan(table_y)]
 
