@@ -75,6 +75,10 @@ class Graph(FigureCanvas):
         return self.toolbar.isZoomed()
 
     @property
+    def isPanned(self):
+        return self.toolbar.isPanned()
+
+    @property
     def curvesOnAxes(self):
         return [curve for curve in self.plotWindow.curveList if curve.getAxes() is not None]
 
@@ -152,7 +156,7 @@ class Graph(FigureCanvas):
             ymin, ymax = self.get_ylim(ax)
             limits[ax] = (tmin, tmax, ymin, ymax)
 
-        if not self.isZoomed:
+        if not (self.isZoomed or self.isPanned):
             for ax, (tmin, tmax, ymin, ymax) in limits.items():
                 ax.set_xlim(tmin, tmax)
                 ax.set_ylim(ymin, ymax)
@@ -233,35 +237,36 @@ class Graph(FigureCanvas):
         if self.isZoomed:
             doDraw = False
         else:
-            doDraw = self.updateLimits(axes, xdata)
+            doDraw = self.updateLimits(axes, xdata, scaleY=(not self.isPanned))
 
         self.displayLine(doDraw=doDraw)
 
-    def updateLimits(self, axes, xdata, doDraw=False):
+    def updateLimits(self, axes, xdata, scaleY=True, doDraw=False):
         tmin, tmax = axes.get_xlim()
 
         if np.max(xdata) > (tmax - 0.01 * (tmax - tmin)):
             axes.set_xlim(self.calc_lim(tmin, np.max(xdata), f1=0, f2=0.15))
             doDraw = True
 
-        for ax in self.allAxes.values():
-            if self.plotWindow.axes2curves[ax]:
-                ymin, ymax = ax.get_ylim()
-                delta = 0.03 * (ymax - ymin)
+        if scaleY:
+            for ax in self.allAxes.values():
+                if self.plotWindow.axes2curves[ax]:
+                    ymin, ymax = ax.get_ylim()
+                    delta = 0.03 * (ymax - ymin)
 
-                curves = self.plotWindow.axes2curves[ax]
-                indices = [indFinder(curve.get_xdata(), tmin) for curve in curves]
+                    curves = self.plotWindow.axes2curves[ax]
+                    indices = [indFinder(curve.get_xdata(), tmin) for curve in curves]
 
-                newMin = np.min([np.min(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
-                newMax = np.max([np.max(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
+                    newMin = np.min([np.min(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
+                    newMax = np.max([np.max(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
 
-                newMin = newMin if newMin < (ymin + delta) else ymin
-                newMax = newMax if newMax > (ymax - delta) else ymax
+                    newMin = newMin if newMin < (ymin + delta) else ymin
+                    newMax = newMax if newMax > (ymax - delta) else ymax
 
-                if not (newMin == ymin and newMax == ymax):
-                    logy = True if ax.get_yscale() == 'log' else False
-                    ax.set_ylim(self.calc_lim(newMin, newMax, logy=logy))
-                    doDraw = True
+                    if not (newMin == ymin and newMax == ymax):
+                        logy = True if ax.get_yscale() == 'log' else False
+                        ax.set_ylim(self.calc_lim(newMin, newMax, logy=logy))
+                        doDraw = True
 
         return doDraw
 
