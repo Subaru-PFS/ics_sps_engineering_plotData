@@ -133,7 +133,6 @@ class Graph(FigureCanvas):
 
     @draw
     def removeCurve(self, curve):
-
         del curve
 
     @draw
@@ -436,10 +435,10 @@ class Graph(FigureCanvas):
 
         labelPoint = QLabel(self)
         labelPoint.setText('%s \r\n %s : %g' % (num2date(valx).isoformat()[:19], curve.label, valy))
-        offset = 0 if (event.x() + labelPoint.width()) < self.frameSize().width() else labelPoint.width()
-
-        labelPoint.move(event.x() - offset, event.y())
         labelPoint.show()
+
+        offset = 0 if (event.x() + labelPoint.width()) < self.frameSize().width() else labelPoint.width()
+        labelPoint.move(event.x() - offset, event.y())
 
         point, = curve.getAxes().plot(valx, valy, 'o', color='k', markersize=4.)
 
@@ -449,7 +448,7 @@ class Graph(FigureCanvas):
         extraLine = ExtraLine(point, labelPoint)
         self.plotWindow.extraLines.append(extraLine)
 
-        timer = QTimer.singleShot(10000, partial(self.removeExtraLine, extraLine))
+        timer = QTimer.singleShot(6000, partial(self.removeExtraLine, extraLine))
 
     def mouseMoveEvent(self, event):
         FigureCanvas.mouseMoveEvent(self, event)
