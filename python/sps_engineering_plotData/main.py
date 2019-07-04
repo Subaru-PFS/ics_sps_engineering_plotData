@@ -16,10 +16,12 @@ def main():
                         help='PostgreSQL port')
     parser.add_argument('--password', default='', type=str, nargs='?',
                         help='PostgreSQL password')
+    parser.add_argument('--dbname', default='archiver', type=str, nargs='?',
+                        help='Database name')
     args = parser.parse_args()
     app = QApplication(sys.argv)
 
-    w = MainWindow(args.host, args.port, args.password)
+    w = MainWindow(**vars(args))
     sys.exit(app.exec_())
 
 

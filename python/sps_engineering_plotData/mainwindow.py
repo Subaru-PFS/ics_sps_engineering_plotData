@@ -14,11 +14,11 @@ from sps_engineering_plotData.widgets import PIcon
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, ip, port, password):
+    def __init__(self, **kwargs):
         super(MainWindow, self).__init__()
 
         self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
-        self.db = DatabaseManager(ip, port, password)
+        self.db = DatabaseManager(**kwargs)
         self.db.init()
 
         self.cuArms = self.getCuArms()
