@@ -22,14 +22,13 @@ class Curve(object):
         self.comboColor.currentIndexChanged.connect(self.updateColor)
         self.deviceLabel = curveConf.deviceLabel
         self.label = '%s - %s' % (curveConf.deviceLabel, curveConf.label)
-        self.type = curveConf.type
+        self.baseType = curveConf.type
         self.ylabel = curveConf.ylabel
         self.unit = curveConf.unit
         self.tablename = curveConf.tablename
         self.key = curveConf.key
 
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
-        self.yscale = 'linear' if 'pressure' not in self.type else 'log'
 
         self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
 
@@ -46,6 +45,17 @@ class Curve(object):
     def __del__(self):
         self.removeLine()
         self.stop()
+
+    @property
+    def type(self):
+        if self.axes is not None and self.baseType == 'none' and self.axes.get_yscale() != 'linear':
+            return 'pressurenone'
+
+        return self.baseType
+
+    @property
+    def yscale(self):
+        return 'linear' if 'pressure' not in self.type else 'log'
 
     @property
     def graph(self):
