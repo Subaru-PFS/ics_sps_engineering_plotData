@@ -42,8 +42,10 @@ class PFigure(Figure):
 
         if idAxes:
             for tic in self.graph.allAxes[0].xaxis.get_major_ticks():
-                tic.tick1On = tic.tick2On = False
-                tic.label1On = tic.label2On = False
+                tic.tick1line.set_visible(False)
+                tic.tick2line.set_visible(False)
+                tic.label1.set_visible(False)
+                tic.label2.set_visible(False)
 
         dateAxes = self.graph.allAxes[idAxes]
         t0, tmax = dateAxes.get_xlim()

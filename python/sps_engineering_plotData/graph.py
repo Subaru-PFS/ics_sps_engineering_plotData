@@ -18,6 +18,8 @@ from navigationtoolbar import NavigationToolbar
 from widgets import VCursor, ExtraLine
 from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 
 rcParams.update({'figure.autolayout': True})
 plt.style.use('ggplot')
@@ -380,15 +382,17 @@ class Graph(FigureCanvas):
         ax.xaxis.set_minor_locator(minor_locatorx)
 
     def pimpTicks(self, tick, primAxes, color):
-        tick.label1On = True if primAxes else False
-        tick.label2On = False if primAxes else True
+        primLabelOn = True if primAxes else False
+        tick.label1.set_visible(primLabelOn)
+        tick.label2.set_visible(not primLabelOn)
 
         coloredTick = tick.label1 if primAxes else tick.label2
         coloredTick.set_color(color=color)
 
     def pimpGrid(self, tick, primAxes, color):
-        tick.label1On = True if primAxes else False
-        tick.label2On = False if primAxes else True
+        primLabelOn = True if primAxes else False
+        tick.label1.set_visible(primLabelOn)
+        tick.label2.set_visible(not primLabelOn)
 
         coloredTick = tick.label1 if primAxes else tick.label2
         coloredTick.set_color(color=color)

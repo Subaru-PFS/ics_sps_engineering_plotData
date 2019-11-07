@@ -72,13 +72,13 @@ class Curve(object):
                                           end=self.idend,
                                           raw_id=True)
 
-            values = dataset[self.key].as_matrix()
-            dates = dataset['tai'].as_matrix()
+            values = dataset[self.key].values
+            dates = dataset['tai'].values
             mask = self.checkValues(values)
             xdata, ydata = dates[mask], values[mask]
 
             self.set_data(np.append(self.get_xdata(), xdata), np.append(self.get_ydata(), ydata))
-            self.idstart = dataset['id'].as_matrix()[-1]
+            self.idstart = dataset['id'].values[-1]
 
             if not start:
                 self.graph.updatePlot(self, xdata, ydata)
