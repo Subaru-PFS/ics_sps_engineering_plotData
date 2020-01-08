@@ -126,6 +126,10 @@ class Customize(QGroupBox):
     def axesAvailables(self):
         return [i for i in range(4) if self.allAxes[i].checkbox.isChecked()]
 
+    def deleteLater(self):
+        while len(self.rowList):
+            self.removeRow(self.rowList[0])
+        QGroupBox.deleteLater(self)
 
 class Subplot(QHBoxLayout):
     def __init__(self, customize, id, name):
