@@ -25,7 +25,12 @@ class Calendar(QWidget):
         gbDataset.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
 
         self.confAuto = QCheckBox('Configuration : Auto')
+
         self.checkboxRealTime = QCheckBox('Real-time')
+        self.maximumTimeStretch = QSpinBox()
+        self.maximumTimeStretch.setMinimum(1)
+        self.maximumTimeStretch.setValue(10)
+
         self.checkboxPastRuns = QCheckBox('Archived')
         self.spinboxDays = QSpinBox()
         self.spinboxDays.setRange(1, 100)
@@ -39,11 +44,13 @@ class Calendar(QWidget):
 
         self.checkboxRealTime.setCheckState(2)
         layoutDataset = QGridLayout()
-        layoutDataset.addWidget(self.confAuto, 0, 0, 2, 1)
+        layoutDataset.addWidget(self.confAuto, 0, 0, 2, 2)
         layoutDataset.addWidget(self.checkboxRealTime, 2, 0, 2, 1)
-        layoutDataset.addWidget(QLabel('Duration (Days)'), 4, 1, 1, 1)
-        layoutDataset.addWidget(self.checkboxPastRuns, 5, 0, 1, 1)
-        layoutDataset.addWidget(self.spinboxDays, 5, 1, 1, 1)
+        layoutDataset.addWidget(QLabel('Maximum Time Stretch (Days)'), 2, 1)
+        layoutDataset.addWidget(self.maximumTimeStretch, 3, 1)
+        layoutDataset.addWidget(QLabel('Duration (Days)'), 4, 1)
+        layoutDataset.addWidget(self.checkboxPastRuns, 5, 0)
+        layoutDataset.addWidget(self.spinboxDays, 5, 1)
 
         layoutCalendar = QVBoxLayout()
         layoutCalendar.addWidget(self.cal)
@@ -111,6 +118,10 @@ class DatePlot(QWidget):
     @property
     def realtime(self):
         return self.cal.checkboxRealTime.isChecked()
+
+    @property
+    def maximumTimeStretch(self):
+        return self.cal.maximumTimeStretch.value()
 
     @property
     def dateEnd(self):

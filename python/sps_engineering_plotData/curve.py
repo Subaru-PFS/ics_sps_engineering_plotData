@@ -74,7 +74,6 @@ class Curve(object):
         return self.comboColor.color
 
     def getData(self, start=False):
-
         try:
             dataset = self.db.dataBetween(table=self.tablename,
                                           cols=self.key,
@@ -149,6 +148,11 @@ class Curve(object):
         return self.xdata, self.ydata
 
     def set_data(self, xdata, ydata):
+        if self.dateplot.realtime:
+            timeClippingMask = (xdata[-1] - xdata) < self.dateplot.maximumTimeStretch
+            xdata = xdata[timeClippingMask]
+            ydata = ydata[timeClippingMask]
+
         self.xdata = xdata
         self.ydata = ydata
 
