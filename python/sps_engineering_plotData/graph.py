@@ -19,6 +19,7 @@ from widgets import VCursor, ExtraLine
 from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 from pandas.plotting import register_matplotlib_converters
+
 register_matplotlib_converters()
 
 rcParams.update({'figure.autolayout': True})
