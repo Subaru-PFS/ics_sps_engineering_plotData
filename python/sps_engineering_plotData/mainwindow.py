@@ -2,11 +2,14 @@
 # encoding: utf-8
 
 
+import importlib
 import os
 from functools import partial
 
+import sps_engineering_Lib_dataQuery.confighandler as confighandler
 import sps_engineering_plotData as plotData
-from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox
+import yaml
+from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox, QFileDialog
 from sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
 from sps_engineering_plotData.tabwidget import PTabWidget
 from sps_engineering_plotData.widgets import PIcon
@@ -79,16 +82,69 @@ class MainWindow(QMainWindow):
         self.helpMenu.addAction(self.about_action)
 
     def loadLayout(self):
-        pass
-        # (fname, fmt) = QFileDialog.getOpenFileName(self, 'Open file',
-        #                                            self.os_path.split('ics_sps_engineering_plotData')[0])
-        # if fname:
-        #     with open(fname, 'r') as fichier:
-        #         unpickler = pickle.Unpickler(fichier)
-        #         customLayout = unpickler.load()
+        importlib.reload(confighandler)
+
+        filepath, fmt = QFileDialog.getOpenFileName(self, 'Open File', '/home/', "(*.yaml)")
+        if not filepath:
+            return
+
+        try:
+            with open(os.path.expandvars(filepath), 'r') as cfgFile:
+                layout = yaml.load(cfgFile)
+
+        except PermissionError as e:
+            self.showError(str(e))
+            return
+
+        try:
+            title, __ = os.path.splitext(os.path.basename(filepath))
+            self.tabWidget.addNameTab(title)
+            plotWindow = self.tabWidget.currentWidget().plotWindow
+            plotWindow.dateplot.cal.exec_()
+            plotWindow.addAxes(layout.keys())
+
+            for axeId, axeProperty in layout.items():
+                id = int(axeId[-1]) - 1
+                axes = plotWindow.allAxes[id]
+                for curveProperty in axeProperty['curves']:
+                    plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
+
+                subplot = plotWindow.customize.allAxes[id]
+                subplot.overrideAxisAndScale(ylabel=axeProperty['ylabel'], yscale=axeProperty['yscale'])
+
+        except Exception:
+            self.tabWidget.removeTab(self.tabWidget.currentIndex())
+            self.showError(f'{filepath} is badly formatted')
 
     def saveLayout(self):
-        pass
+        layout = dict()
+
+        try:
+            tab = self.tabWidget.currentWidget()
+            curves = tab.plotWindow.axes2curves
+        except AttributeError:
+            self.showError('There are not any tabs...')
+            return
+
+        try:
+            axes = tab.plotWindow.graph.allAxes
+            for axeId, axe in axes.items():
+                axeCurves = curves[axe]
+                axeProperty = dict(ylabel=axe.get_ylabel(), yscale=axe.get_yscale(),
+                                   curves=[curve.as_dict() for curve in axeCurves])
+
+                layout[f'ax{axeId + 1}'] = axeProperty
+            filepath, fmt = QFileDialog.getSaveFileName(self, 'Save File',
+                                                        f'/home/{self.tabWidget.tabText()}.yaml', "(*.yaml)")
+            if filepath:
+                with open(os.path.expandvars(filepath), 'w') as savedFile:
+                    yaml.dump(layout, savedFile)
+
+        except AttributeError:
+            self.showError('Current tab does not hold any graph...')
+
+        except PermissionError as e:
+            self.showError(str(e))
 
     def showError(self, error):
         reply = QMessageBox.critical(self, 'Exception', error, QMessageBox.Ok)

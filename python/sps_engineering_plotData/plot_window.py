@@ -100,6 +100,11 @@ class PlotWindow(QWidget):
 
         self.allAxes = allAxes
 
+    def addAxes(self, axeIds):
+        for axeId in axeIds:
+            id = int(axeId[-1]) - 1
+            self.customize.allAxes[id].checkbox.setChecked(1)
+
     def unsetLines(self, axes, newAxes):
         while axes.lines:
             line = axes.lines[0]
@@ -113,10 +118,9 @@ class PlotWindow(QWidget):
                 pass
             del line
 
-    def addCurve(self, curveConf):
-
+    def addCurve(self, curveConf, axes=None):
         new_curve = Curve(self, curveConf)
-        axes = self.getAxes(new_curve.type)
+        axes = self.getAxes(new_curve.type) if axes is None else axes
 
         if isinstance(axes, int):
             idAxes = axes

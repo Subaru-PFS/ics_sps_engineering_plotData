@@ -14,8 +14,9 @@ class Tab(QWidget):
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.button_add_graph)
-        self.plotWindow = self.addGraph()
         self.setLayout(self.layout)
+
+        self.plotWindow = self.addGraph()
 
     @property
     def mainwindow(self):
@@ -25,6 +26,7 @@ class Tab(QWidget):
         widget = PlotWindow(self)
         self.layout.addWidget(widget)
         self.button_add_graph.hide()
+
         return widget
 
     def removeGraph(self, widget):

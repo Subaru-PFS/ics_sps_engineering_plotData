@@ -131,15 +131,16 @@ class Customize(QGroupBox):
             self.removeRow(self.rowList[0])
         QGroupBox.deleteLater(self)
 
+
 class Subplot(QHBoxLayout):
     def __init__(self, customize, id, name):
         QHBoxLayout.__init__(self)
 
         self.customize = customize
         self.checkbox = QCheckBox(name)
-
+        self.eraseUserPreferences()
         self.id = id
-
+        self.ignore = False
         self.checkbox.setCheckState(0)
         self.checkbox.stateChanged.connect(self.handleChecking)
 
@@ -155,25 +156,70 @@ class Subplot(QHBoxLayout):
         return self.customize.customAxes
 
     @property
-    def scale(self):
-        return self.comscale.currentText()
+    def axe(self):
+        return self.customize.plotWindow.allAxes[self.id]
+
+    @property
+    def typedCurve(self):
+        return [curve for curve in self.customize.plotWindow.axes2curves[self.axe] if curve.type != 'none']
+
+    @property
+    def typedAxe(self):
+        return len(set([curve.type for curve in self.typedCurve])) == 1
+
+    @property
+    def autoLabel(self):
+        return self.typedCurve[0].ylabel if self.typedAxe else f'YAXIS_{self.id + 1} (..)'
+
+    @property
+    def autoScale(self):
+        return self.typedCurve[0].yscale if self.typedAxe else self.comscale.currentText()
+
+    @property
+    def yscale(self):
+        return self.userScale if self.userScale is not None else self.autoScale
+
+    @property
+    def ylabel(self):
+        return self.userLabel if self.userLabel is not None else self.autoLabel
 
     @property
     def graph(self):
         return self.customize.plotWindow.graph
 
-    def handleChecking(self):
+    def eraseUserPreferences(self):
+        self.userScale = None
+        self.userLabel = None
 
+    def handleChecking(self):
         if self.checkbox.isChecked():
             self.customAxes.append(self)
         else:
             self.customAxes.remove(self)
 
+        self.eraseUserPreferences()
         self.customize.plotWindow.createGraph(self.customAxes)
         self.customize.checkAvailable()
 
     def updateScale(self):
+        self.userScale = str(self.comscale.currentText())
         try:
-            self.graph.updateScale(self.graph.allAxes[self.id], self.comscale.currentText())
+            self.graph.updateScale(self.axe, self.yscale)
         except Exception as e:
             print(e)
+
+    def setAxisAndScale(self):
+        self.comscale.blockSignals(True)
+        self.axe.set_ylabel(self.ylabel)
+        self.axe.set_yscale(self.yscale, basey=10)
+        self.comscale.setCurrentText(self.yscale)
+        self.comscale.blockSignals(False)
+
+    def overrideAxisAndScale(self, ylabel=None, yscale=None):
+        ylabel = self.axe.get_ylabel() if ylabel is None else ylabel
+        yscale = self.axe.get_yscale() if yscale is None else yscale
+
+        self.userLabel = ylabel if ylabel != self.autoLabel else self.userLabel
+
+        self.axe.set_ylabel(ylabel)
+        self.comscale.setCurrentText(yscale)

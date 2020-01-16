@@ -3,12 +3,12 @@ from functools import partial
 
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, \
-    QPushButton, QGroupBox, QCheckBox, QGridLayout, QLineEdit, QCalendarWidget, QLabel, QSpinBox
+    QPushButton, QGroupBox, QCheckBox, QGridLayout, QLineEdit, QCalendarWidget, QLabel, QSpinBox, QDialog
 from sps_engineering_Lib_dataQuery.confighandler import loadConf
 from sps_engineering_Lib_dataQuery.dates import str2date
 
 
-class Calendar(QWidget):
+class Calendar(QDialog):
     def __init__(self, dateplot):
         self.dateplot = dateplot
         QWidget.__init__(self)
@@ -63,7 +63,7 @@ class Calendar(QWidget):
         self.setLayout(self.layout)
         self.setGeometry(300, 300, 350, 300)
         self.setWindowTitle('Calendar')
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowModality(Qt.ApplicationModal)
 
     def showDate(self, date=None):
         date = self.cal.selectedDate() if date is None else date
@@ -109,6 +109,7 @@ class DatePlot(QWidget):
         self.layout.addWidget(self.choseDate, 0, 1)
         self.layout.addWidget(self.dateStr, 0, 2, 1, 5)
 
+        self.cal.show()
         self.setLayout(self.layout)
 
     @property

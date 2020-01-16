@@ -20,13 +20,14 @@ class Curve(object):
         self.plotWindow = plotWindow
         self.comboColor = ComboColor(len(self.plotWindow.curveList))
         self.comboColor.currentIndexChanged.connect(self.updateColor)
-        self.deviceLabel = curveConf.deviceLabel
-        self.label = '%s - %s' % (curveConf.deviceLabel, curveConf.label)
-        self.baseType = curveConf.type
-        self.ylabel = curveConf.ylabel
-        self.unit = curveConf.unit
+
+        self.type = curveConf.type
+        self.label = curveConf.fullLabel
         self.tablename = curveConf.tablename
         self.key = curveConf.key
+        self.trange = curveConf.trange
+        self.ylabel = curveConf.ylabel
+        self.yscale = curveConf.yscale
 
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
@@ -45,17 +46,6 @@ class Curve(object):
     def __del__(self):
         self.removeLine()
         self.stop()
-
-    @property
-    def type(self):
-        if self.axes is not None and self.baseType == 'none' and self.axes.get_yscale() != 'linear':
-            return 'pressurenone'
-
-        return self.baseType
-
-    @property
-    def yscale(self):
-        return 'linear' if 'pressure' not in self.type else 'log'
 
     @property
     def graph(self):
@@ -120,15 +110,8 @@ class Curve(object):
             self.graph.draw_idle()
 
     def updateProp(self):
-        yscale = self.axes.get_yscale()
-        ylabel = self.axes.get_ylabel()
-        label = self.line.get_label()
-        color = mcolors.to_hex(self.line.get_color())
-
-        self.yscale = yscale
-        self.label = label
-        self.ylabel = ylabel
-        self.comboColor.newColor(color)
+        self.label = self.line.get_label()
+        self.comboColor.newColor(mcolors.to_hex(self.line.get_color()))
 
     def removeLine(self):
 
@@ -161,3 +144,6 @@ class Curve(object):
 
     def get_ydata(self):
         return self.ydata
+
+    def as_dict(self):
+        return dict(fullLabel=self.label, type=self.type, tablename=self.tablename, key=self.key)
