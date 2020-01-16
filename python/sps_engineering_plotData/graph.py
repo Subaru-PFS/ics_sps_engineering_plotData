@@ -104,7 +104,6 @@ class Graph(FigureCanvas):
                 axes.format_coord = make_format(axes, AllAxes[2])
             try:
                 oldAxes = self.allAxes[newAxes.id]
-                axes.set_yscale(oldAxes.get_yscale())
                 for curve in oldAffect[oldAxes]:
                     curve.setAxes(axes)
 
@@ -114,7 +113,6 @@ class Graph(FigureCanvas):
             AllAxes[newAxes.id] = axes
 
         self.plotWindow.setAxes(AllAxes)
-
         self.plotCurves()
 
     def plot_date(self, curve):
@@ -123,16 +121,15 @@ class Graph(FigureCanvas):
         line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-', color=curve.color, label=curve.label)
         curve.setLine(line)
 
-        self.setNewScale(curve)
-
     @draw
     def plotCurves(self, new_curve=False):
-
         Curves = [new_curve] if new_curve else self.plotWindow.curveList
         onAxe = [curve for curve in Curves if curve.getAxes() is not None]
 
         for curve in onAxe:
             self.plot_date(curve)
+
+        self.setAxisAndScale()
 
     @draw
     def removeCurve(self, curve):
@@ -212,19 +209,15 @@ class Graph(FigureCanvas):
 
         return dmin, dmax
 
-    def checkScales(self):
-
+    def setAxisAndScale(self):
         for id, ax in self.allAxes.items():
-            comboScale = self.plotWindow.customize.allAxes[id].comscale
-            if ax.get_yscale() != comboScale.currentText():
-                comboScale.setCurrentText(ax.get_yscale())
+            subplot = self.plotWindow.customize.allAxes[id]
+            subplot.setAxisAndScale()
 
-    def setNewScale(self, curve):
-        axes = curve.getAxes()
-        comboScale = self.plotWindow.customize.allAxes[self.plotWindow.axes2id[axes]].comscale
-
-        if curve.yscale != comboScale.currentText():
-            comboScale.setCurrentText(curve.yscale)
+    def overrideAxisAndScale(self):
+        for id, ax in self.allAxes.items():
+            subplot = self.plotWindow.customize.allAxes[id]
+            subplot.overrideAxisAndScale()
 
     def updatePlot(self, curve, xdata, ydata):
 
@@ -313,8 +306,7 @@ class Graph(FigureCanvas):
             try:
                 primAxess = not id % 2
                 curve = self.plotWindow.axes2curves[ax][0]
-                curve.ylabel = 'YAXIS_%d (..)' % id if curve.ylabel == '.. (-)' else curve.ylabel
-                ax.set_ylabel(curve.ylabel, color=curve.color, fontsize=fontsize)
+                ax.set_ylabel(ax.get_ylabel(), color=curve.color, fontsize=fontsize)
                 self.setTickLocator(ax)
 
                 for tick in (ax.yaxis.get_major_ticks() + ax.yaxis.get_minor_ticks()):
@@ -326,6 +318,7 @@ class Graph(FigureCanvas):
                 ax.grid(which='minor', alpha=alpha2, color=curve.color, linestyle=min_style)
 
                 ax.tick_params(axis='y', labelsize=fontsize)
+
             except IndexError:
                 pass
 
@@ -487,4 +480,4 @@ class Graph(FigureCanvas):
         for curve in self.curvesOnAxes:
             curve.updateProp()
 
-        self.checkScales()
+        self.overrideAxisAndScale()

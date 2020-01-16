@@ -40,12 +40,16 @@ def make_format(ax2, ax1):
 
         ax_coord = inv.transform(display_coord)
 
-        unit1 = ax1.get_ylabel().split(' ')[1] if ax1.get_lines() else ''
-        unit2 = ax2.get_ylabel().split(' ')[1] if ax2.get_lines() else ''
+        # unit1 = ax1.get_ylabel().split(' ')[1] if ax1.get_lines() else ''
+        # unit2 = ax2.get_ylabel().split(' ')[1] if ax2.get_lines() else ''
+        #
+        # date = num2date(x).isoformat()[:19]
+        # val1 = 'y1%s = %g' % (unit1, ax_coord[1]) if unit1 else ''
+        # val2 = 'y2%s = %g' % (unit2, y) if unit2 else ''
 
         date = num2date(x).isoformat()[:19]
-        val1 = 'y1%s = %g' % (unit1, ax_coord[1]) if unit1 else ''
-        val2 = 'y2%s = %g' % (unit2, y) if unit2 else ''
+        val1 = 'y1 = %g' % ax_coord[1] if ax1.get_lines() else ''
+        val2 = 'y2 = %g' % y if ax2.get_lines() else ''
 
         return '   '.join([date, val1, val2])
 
