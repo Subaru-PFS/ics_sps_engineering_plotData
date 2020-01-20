@@ -83,6 +83,7 @@ class MainWindow(QMainWindow):
 
     def loadLayout(self):
         importlib.reload(confighandler)
+        failed = []
 
         filepath, fmt = QFileDialog.getOpenFileName(self, 'Open File', '/home/', "(*.yaml)")
         if not filepath:
@@ -90,7 +91,7 @@ class MainWindow(QMainWindow):
 
         try:
             with open(os.path.expandvars(filepath), 'r') as cfgFile:
-                layout = yaml.load(cfgFile)
+                layout = yaml.load(cfgFile, Loader=yaml.FullLoader)
 
         except PermissionError as e:
             self.showError(str(e))
@@ -107,14 +108,20 @@ class MainWindow(QMainWindow):
                 id = int(axeId[-1]) - 1
                 axes = plotWindow.allAxes[id]
                 for curveProperty in axeProperty['curves']:
-                    plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
+                    try:
+                        plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
+                    except Exception as e:
+                        failed.append(f'{curveProperty["fullLabel"]}:{str(e)}')
 
                 subplot = plotWindow.customize.allAxes[id]
                 subplot.overrideAxisAndScale(ylabel=axeProperty['ylabel'], yscale=axeProperty['yscale'])
 
-        except Exception:
+        except Exception as e:
             self.tabWidget.removeTab(self.tabWidget.currentIndex())
-            self.showError(f'{filepath} is badly formatted')
+            self.showError(f'{filepath} is badly formatted : \n {str(e)}')
+
+        if failed:
+            self.showError('\r\n'.join(failed))
 
     def saveLayout(self):
         layout = dict()

@@ -150,7 +150,7 @@ class PlotWindow(QWidget):
             checkbox = curve.checkbox
             checkbox.setCheckable(True)
             checkbox.setChecked(0)
-        except RuntimeError:
+        except (RuntimeError, AttributeError):
             pass  # Checkbox could have been already deleted
 
     def constructGroupbox(self, config):
