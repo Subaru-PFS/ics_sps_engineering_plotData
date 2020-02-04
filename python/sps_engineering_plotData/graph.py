@@ -240,6 +240,7 @@ class Graph(FigureCanvas):
         tmin, tmax = axes.get_xlim()
 
         if np.max(xdata) > (tmax - 0.01 * (tmax - tmin)):
+            tmin = max(tmin, np.min([np.min(curve.get_xdata()) for curve in self.plotWindow.axes2curves[axes]]))
             axes.set_xlim(self.calc_lim(tmin, np.max(xdata), f1=0, f2=0.15))
             doDraw = True
 
