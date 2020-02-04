@@ -12,10 +12,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.dates import num2date
 from functools import partial
 
-from figure import PFigure
-from transform import make_format, indFinder
-from navigationtoolbar import NavigationToolbar
-from widgets import VCursor, ExtraLine
+from sps_engineering_plotData.figure import PFigure
+from sps_engineering_plotData.transform import make_format, indFinder
+from sps_engineering_plotData.navigationtoolbar import NavigationToolbar
+from sps_engineering_plotData.widgets import VCursor, ExtraLine
 from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 from pandas.plotting import register_matplotlib_converters

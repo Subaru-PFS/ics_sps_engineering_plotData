@@ -2,7 +2,7 @@ __author__ = 'alefur'
 from PyQt5.QtGui import QPixmap, QIcon, QColor
 from PyQt5.QtWidgets import QComboBox, QCheckBox, QPushButton, QLabel
 from matplotlib.dates import num2date
-from transform import indFinder
+from sps_engineering_plotData.transform import indFinder
 
 colorList = ['#1f78c5', '#ff801e', '#2ca13c', '#d82738', '#9568cf', '#8d565b', '#e578c3', '#17bfd1',
              '#f2f410', '#808080', '#000000', '#acc5f5', '#fcb986', '#96dc98', '#fc96a4', '#c3aee2',
