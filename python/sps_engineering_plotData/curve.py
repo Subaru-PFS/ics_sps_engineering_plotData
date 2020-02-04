@@ -1,7 +1,7 @@
 import numpy as np
 from PyQt5.QtCore import QTimer
 from matplotlib import colors as mcolors
-from widgets import ComboColor
+from sps_engineering_plotData.widgets import ComboColor
 
 
 class Curve(object):

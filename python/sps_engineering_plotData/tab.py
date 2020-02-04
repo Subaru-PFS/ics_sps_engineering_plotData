@@ -1,7 +1,7 @@
 from functools import partial
 
 from PyQt5.QtWidgets import QPushButton, QWidget, QVBoxLayout
-from plot_window import PlotWindow
+from sps_engineering_plotData.plotwin import PlotWindow
 
 
 class Tab(QWidget):
@@ -10,19 +10,19 @@ class Tab(QWidget):
         self.tabwidget = tabwidget
         self.list = []
         self.button_add_graph = QPushButton("Add Graph")
-        self.button_add_graph.clicked.connect(partial(self.addGraph))
+        self.button_add_graph.clicked.connect(partial(self.addPlot))
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.button_add_graph)
         self.setLayout(self.layout)
 
-        self.plotWindow = self.addGraph()
+        self.plotWindow = self.addPlot()
 
     @property
     def mainwindow(self):
         return self.tabwidget.mainwindow
 
-    def addGraph(self):
+    def addPlot(self):
         widget = PlotWindow(self)
         self.layout.addWidget(widget)
         self.button_add_graph.hide()

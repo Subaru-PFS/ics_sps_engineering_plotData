@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
-from transform import computeScale
+from sps_engineering_plotData.transform import computeScale
 
 
 class PFigure(Figure):

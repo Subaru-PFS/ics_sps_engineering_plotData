@@ -5,7 +5,7 @@ import argparse
 import sys
 
 from PyQt5.QtWidgets import QApplication
-from mainwindow import MainWindow
+from sps_engineering_plotData.mainwindow import MainWindow
 
 
 def main():
