@@ -36,10 +36,8 @@ class Tab(QWidget):
 
     def restart(self):
         for curve in self.plotWindow.curveList:
-            if curve.watcher and not curve.watcher.isActive():
-                curve.restart()
+            curve.start()
 
     def stop(self):
         for curve in self.plotWindow.curveList:
-            if curve.watcher and curve.watcher.isActive():
-                curve.stop()
+            curve.stop()

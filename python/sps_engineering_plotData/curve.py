@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from PyQt5.QtCore import QTimer
 from matplotlib import colors as mcolors
@@ -11,8 +13,8 @@ class Curve(object):
         self.line = False
 
         self.watcher = QTimer(plotWindow)
-        self.watcher.setInterval(2500)
         self.watcher.timeout.connect(self.getData)
+        self.period = 10 * [0.1]
 
         self.xdata = []
         self.ydata = []
@@ -38,10 +40,7 @@ class Curve(object):
         else:
             self.idend = False
 
-        self.getData(start=True)
-
-        if not self.idend:
-            self.startUpdating()
+        self.start()
 
     def __del__(self):
         self.removeLine()
@@ -63,14 +62,14 @@ class Curve(object):
     def color(self):
         return self.comboColor.color
 
-    def getData(self, start=False):
+    def getData(self, atStart=False):
+        t0 = time.time()
         try:
             dataset = self.db.dataBetween(table=self.tablename,
                                           cols=self.key,
                                           start=self.idstart,
                                           end=self.idend,
                                           raw_id=True)
-
             values = dataset[self.key].values
             dates = dataset['tai'].values
             mask = self.checkValues(values)
@@ -79,7 +78,7 @@ class Curve(object):
             self.set_data(np.append(self.get_xdata(), xdata), np.append(self.get_ydata(), ydata))
             self.idstart = dataset['id'].values[-1]
 
-            if not start:
+            if not atStart:
                 self.graph.updatePlot(self, xdata, ydata)
             else:
                 if not len(self.get_xdata()):
@@ -88,8 +87,16 @@ class Curve(object):
         except ValueError as e:
             pass
 
-    def startUpdating(self):
-        self.watcher.start()
+        self.timerPeriod(time.time() - t0, atStart=atStart)
+
+    def timerPeriod(self, tdelta, atStart):
+        if not atStart:
+            self.period.append(tdelta)
+
+        self.period = self.period[-10:]
+        period = 100 * 1000 * np.mean(self.period)
+        period = min(max(2000, period), 120000)
+        self.watcher.setInterval(int(period))
 
     def setAxes(self, axes):
         self.axes = axes
@@ -123,9 +130,10 @@ class Curve(object):
     def stop(self):
         self.watcher.stop()
 
-    def restart(self):
-        self.getData()
-        self.watcher.start()
+    def start(self):
+        self.getData(atStart=True)
+        if not self.idend and not self.watcher.isActive():
+            self.watcher.start()
 
     def get_data(self):
         return self.xdata, self.ydata
