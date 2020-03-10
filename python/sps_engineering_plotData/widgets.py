@@ -1,12 +1,13 @@
 __author__ = 'alefur'
+
 from PyQt5.QtGui import QPixmap, QIcon, QColor
 from PyQt5.QtWidgets import QComboBox, QCheckBox, QPushButton, QLabel
 from matplotlib.dates import num2date
 from sps_engineering_plotData.transform import indFinder
 
-colorList = ['#1f78c5', '#ff801e', '#2ca13c', '#d82738', '#9568cf', '#8d565b', '#e578c3', '#17bfd1',
-             '#f2f410', '#808080', '#000000', '#acc5f5', '#fcb986', '#96dc98', '#fc96a4', '#c3aee2',
-             '#c29aa2', '#f4b4cf', '#9cd7e2', '#caca76', '#c5c5c5']
+colorList = ['#1e71ab', '#f3790d', '#2a982a', '#cc2526', '#8d62b4', '#855247', '#d871b9', '#797979', '#b3b420',
+             '#16b5c5', '#000000', '#a9c1e1', '#f8b675', '#94d986', '#f89492', '#bfabcf', '#be9790', '#f0b1cc',
+             '#c1c1c1', '#d5d589', '#99d4de']
 
 
 class PIcon(QIcon):
