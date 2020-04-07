@@ -22,7 +22,6 @@ class MainWindow(QMainWindow):
 
         self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
         self.db = DatabaseManager(**kwargs)
-        self.db.init()
 
         self.cuArms = self.getCuArms()
         self.getIcons()

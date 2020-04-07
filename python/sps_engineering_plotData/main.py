@@ -10,13 +10,13 @@ from sps_engineering_plotData.mainwindow import MainWindow
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default=None, type=str, nargs='?',
+    parser.add_argument('--host', default='db-ics', type=str, nargs='?',
                         help='PostgreSQL host')
-    parser.add_argument('--port', default=None, type=int, nargs='?',
+    parser.add_argument('--port', default=5432, type=int, nargs='?',
                         help='PostgreSQL port')
     parser.add_argument('--password', default=None, type=str, nargs='?',
                         help='PostgreSQL password')
-    parser.add_argument('--dbname', default=None, type=str, nargs='?',
+    parser.add_argument('--dbname', default='archiver', type=str, nargs='?',
                         help='Database name')
     args = parser.parse_args()
     app = QApplication(sys.argv)
