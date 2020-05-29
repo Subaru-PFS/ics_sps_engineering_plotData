@@ -97,9 +97,12 @@ class Customize(QGroupBox):
             self.curvelayout.removeWidget(widget)
             widget.deleteLater()
 
-        self.rowList.remove(row)
-        self.cleanRows()
+        try:
+            self.rowList.remove(row)
+        except ValueError:
+            pass
 
+        self.cleanRows()
         self.plotWindow.removeCurve(row.curve)
 
     def cleanRows(self):

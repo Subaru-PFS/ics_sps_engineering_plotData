@@ -143,7 +143,10 @@ class PlotWindow(QWidget):
         self.graph.switchCurve(ax, curve)
 
     def removeCurve(self, curve):
-        self.curveList.remove(curve)
+        try:
+            self.curveList.remove(curve)
+        except ValueError:
+            pass
         self.graph.removeCurve(curve)
 
         try:
