@@ -33,10 +33,10 @@ class Curve(object):
 
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
-        self.idstart = self.db.closestId(self.tablename, date=self.dateplot.datetime)
+        self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
 
         if not self.dateplot.realtime:
-            self.idend = self.db.closestId(self.tablename, date=self.dateplot.dateEnd, reverse=True)
+            self.idend = self.db.idFromDate(self.tablename, date=self.dateplot.dateEnd, reverse=True)
         else:
             self.idend = False
 
@@ -69,7 +69,7 @@ class Curve(object):
                                           cols=self.key,
                                           start=self.idstart,
                                           end=self.idend,
-                                          raw_id=True)
+                                          asId=True)
             values = dataset[self.key].values
             dates = dataset['tai'].values
             mask = self.checkValues(values)
