@@ -10,7 +10,7 @@ import sps_engineering_Lib_dataQuery.confighandler as confighandler
 import sps_engineering_plotData as plotData
 import yaml
 from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox, QFileDialog
-from sps_engineering_Lib_dataQuery.databasemanager import DatabaseManager
+from sps_engineering_plotData.archiver import ArchiverHandler
 from sps_engineering_plotData.tabwidget import PTabWidget
 from sps_engineering_plotData.widgets import PIcon
 
@@ -21,7 +21,6 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
-        self.db = DatabaseManager(**kwargs)
 
         self.cuArms = self.getCuArms()
         self.getIcons()
@@ -32,6 +31,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('ics_sps_engineering_plotData')
         self.showMaximized()
         self.show()
+        self.db = ArchiverHandler(**kwargs)
+        try:
+            self.db.connect()
+        except Exception as e:
+            self.showError(str(e))
 
     def getCuArms(self):
         cuArms = []

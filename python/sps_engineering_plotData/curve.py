@@ -83,9 +83,11 @@ class Curve(object):
             else:
                 if not len(self.get_xdata()):
                     raise Exception("All values are NaN")
-
-        except ValueError as e:
+        except ValueError:
             pass
+        except UserWarning as e:
+            self.plotWindow.mainwindow.showError(str(e))
+            return
 
         self.timerPeriod(time.time() - t0, atStart=atStart)
 
