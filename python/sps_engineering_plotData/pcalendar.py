@@ -138,7 +138,12 @@ class DatePlot(QWidget):
             if not self.cal.confAuto.isChecked():
                 self.config = loadConf(self.dateStr.text())
             else:
-                self.config = self.mainwindow.db.pollDbConf(self.dateStr.text())
+                try:
+                    self.config = self.mainwindow.db.pollDbConf(self.dateStr.text())
+                except Exception as e:
+                    self.cal.confAuto.setCheckState(0)
+                    self.mainwindow.showError(str(e))
+                    return
 
             self.plotWindow.constructGroupbox(self.config)
         else:
