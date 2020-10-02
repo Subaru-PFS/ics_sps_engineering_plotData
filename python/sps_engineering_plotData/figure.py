@@ -25,8 +25,12 @@ class PFigure(Figure):
 
         Figure.draw(self, event)
 
-        self.graph.bck = self.saveBackground()
-        self.graph.showExtraLines()
+        try:
+            self.graph.bck = self.saveBackground()
+            self.graph.showExtraLines()
+        except AttributeError:
+            pass
+
 
     def saveBackground(self):
 
