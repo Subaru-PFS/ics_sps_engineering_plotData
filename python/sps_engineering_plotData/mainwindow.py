@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.resize(1024, 768)
         self.move(300, 300)
         self.setWindowTitle('ics_sps_engineering_plotData')
-        self.showMaximized()
+        #self.showMaximized()
         self.show()
         self.db = ArchiverHandler(**kwargs)
         try:

@@ -33,10 +33,13 @@ class Curve(object):
 
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
-        self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
+        try:
+            self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
+        except:
+            raise ValueError(f'{self.tablename} does not contain any data on {self.dateplot.datetime}')
 
         if not self.dateplot.realtime:
-            self.idend = self.db.idFromDate(self.tablename, date=self.dateplot.dateEnd, reverse=True)
+            self.idend, __ = self.db.fetchone(self.db.rangeMax(end=str(self.dateplot.dateEnd)))
         else:
             self.idend = False
 
@@ -65,18 +68,14 @@ class Curve(object):
     def getData(self, atStart=False):
         t0 = time.time()
         try:
-            dataset = self.db.dataBetween(table=self.tablename,
-                                          cols=self.key,
-                                          start=self.idstart,
-                                          end=self.idend,
-                                          asId=True)
+            dataset = self.db.dataBetweenId(self.tablename, self.key, self.idstart, maxId=self.idend)
             values = dataset[self.key].values
             dates = dataset['tai'].values
             mask = self.checkValues(values)
             xdata, ydata = dates[mask], values[mask]
 
             self.set_data(np.append(self.get_xdata(), xdata), np.append(self.get_ydata(), ydata))
-            self.idstart = dataset['id'].values[-1]
+            self.idstart = dataset['id'].values[-1] + 1
 
             if not atStart:
                 self.graph.updatePlot(self, xdata, ydata)
