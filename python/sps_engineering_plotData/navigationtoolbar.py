@@ -1,6 +1,13 @@
 from matplotlib import cbook
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 
+try:
+    from matplotlib.backend_bases import _Mode
+
+    oldVersion = False
+except ImportError:
+    oldVersion = True
+
 
 class NStack(cbook.Stack):
     def __init__(self):
@@ -24,16 +31,24 @@ class NavigationToolbar(NavigationToolbar2QT):
         self._nav_stack = NStack()
 
     def isZoomed(self):
-        if self._active == 'ZOOM':
-            return 1
-        else:
-            return 0
+        ret = self.isZoomed1() if oldVersion else self.isZoomed2()
+        return ret
 
     def isPanned(self):
-        if self._active == 'PAN':
-            return 1
-        else:
-            return 0
+        ret = self.isPanned1() if oldVersion else self.isPanned2()
+        return ret
+
+    def isZoomed1(self):
+        return self._active == 'ZOOM'
+
+    def isPanned1(self):
+        return self._active == 'PAN'
+
+    def isZoomed2(self):
+        return self.mode == _Mode.ZOOM
+
+    def isPanned2(self):
+        return self.mode == _Mode.PAN
 
     def edit_parameters(self):
         self.canvas.fig.editAxes = True
