@@ -214,7 +214,7 @@ class Subplot(QHBoxLayout):
     def setAxisAndScale(self):
         self.comscale.blockSignals(True)
         self.axe.set_ylabel(self.ylabel)
-        self.axe.set_yscale(self.yscale, basey=10)
+        self.axe.set_yscale(self.yscale)
         self.comscale.setCurrentText(self.yscale)
         self.comscale.blockSignals(False)
 

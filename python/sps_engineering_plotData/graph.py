@@ -137,7 +137,7 @@ class Graph(FigureCanvas):
 
     @draw
     def updateScale(self, ax, scale):
-        ax.set_yscale(scale, basey=10)
+        ax.set_yscale(scale, base=10)
 
     def switchCurve(self, axes, curve):
 
