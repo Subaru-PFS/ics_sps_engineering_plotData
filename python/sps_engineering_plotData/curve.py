@@ -131,8 +131,8 @@ class Curve(object):
     def stop(self):
         self.watcher.stop()
 
-    def start(self):
-        self.getData(atStart=True)
+    def start(self, atStart=True):
+        self.getData(atStart=atStart)
         if not self.idend and not self.watcher.isActive():
             self.watcher.start()
 

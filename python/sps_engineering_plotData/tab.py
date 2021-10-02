@@ -36,7 +36,7 @@ class Tab(QWidget):
 
     def restart(self):
         for curve in self.plotWindow.curveList:
-            curve.start()
+            curve.start(atStart=False)
 
     def stop(self):
         for curve in self.plotWindow.curveList:
