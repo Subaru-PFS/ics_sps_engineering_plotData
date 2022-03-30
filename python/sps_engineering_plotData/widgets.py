@@ -115,7 +115,7 @@ class PQCheckBox(QCheckBox):
 class ExtraLine(object):
     def __init__(self, line, label):
         object.__init__(self)
-        label.setWordWrap(True)
+        label.setWordWrap(False)
         self.line = line
         self.label = label
 
