@@ -1,13 +1,40 @@
 __author__ = 'alefur'
 
 from PyQt5.QtGui import QPixmap, QIcon, QColor
-from PyQt5.QtWidgets import QComboBox, QCheckBox, QPushButton, QLabel
+from PyQt5.QtWidgets import QComboBox, QCheckBox, QPushButton, QLabel, QGridLayout, QVBoxLayout
 from matplotlib.dates import num2date
 from sps_engineering_plotData.transform import indFinder
 
 colorList = ['#1e71ab', '#f3790d', '#2a982a', '#cc2526', '#8d62b4', '#855247', '#d871b9', '#797979', '#b3b420',
              '#16b5c5', '#000000', '#a9c1e1', '#f8b675', '#94d986', '#f89492', '#bfabcf', '#be9790', '#f0b1cc',
              '#c1c1c1', '#d5d589', '#99d4de']
+
+
+class TightCombo(QComboBox):
+    def __init__(self, *args, **kwargs):
+        QComboBox.__init__(self, *args, **kwargs)
+
+    def addItem(self, *args, **kwargs):
+        QComboBox.addItem(self, *args, **kwargs)
+        self.setMaximumHeight(self.sizeHint().height() * 0.85)
+
+    def addItems(self, *args, **kwargs):
+        QComboBox.addItems(self, *args, **kwargs)
+        self.setMaximumHeight(self.sizeHint().height() * 0.85)
+
+
+class TightGrid(QGridLayout):
+    def __init__(self, *args, **kwargs):
+        QGridLayout.__init__(self, *args, **kwargs)
+        self.setSpacing(1)
+        self.setContentsMargins(1, 0, 1, 1)
+
+
+class TightVBox(QVBoxLayout):
+    def __init__(self, *args, **kwargs):
+        QVBoxLayout.__init__(self, *args, **kwargs)
+        self.setSpacing(1)
+        self.setContentsMargins(1, 1, 1, 1)
 
 
 class PIcon(QIcon):
@@ -17,14 +44,13 @@ class PIcon(QIcon):
         QIcon.__init__(self, pix)
 
 
-class ComboColor(QComboBox):
+class ComboColor(TightCombo):
     def __init__(self, index):
         QComboBox.__init__(self)
 
         for color in colorList:
             self.addColor(color)
 
-        self.setFixedWidth(45)
         self.setCurrentIndex(index % len(colorList))
 
     @property

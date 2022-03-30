@@ -1,7 +1,7 @@
 from functools import partial
 
-from PyQt5.QtWidgets import QComboBox, QVBoxLayout, QHBoxLayout, \
-    QPushButton, QGroupBox, QCheckBox, QGridLayout, QLabel
+from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QGroupBox, QCheckBox, QLabel
+from sps_engineering_plotData.widgets import TightGrid, TightCombo, TightVBox
 
 
 class CurveRow():
@@ -31,6 +31,7 @@ class CurveRow():
         button = QPushButton('')
         button.setIcon(self.customize.plotWindow.mainwindow.icon_delete)
         button.clicked.connect(partial(self.customize.removeRow, self))
+        button.setMaximumHeight(18)
         return button
 
     def updateCombo(self, layout, ind):
@@ -46,7 +47,7 @@ class CurveRow():
 
         axesId = self.customize.plotWindow.axes2id[self.curve.getAxes()]
 
-        combo = QComboBox()
+        combo = TightCombo()
         availables = [Customize.id2axStr[id] for id in self.customize.axesAvailables] + ['none']
         combo.addItems(availables)
 
@@ -65,9 +66,9 @@ class Customize(QGroupBox):
     def __init__(self, plotWindow):
         self.plotWindow = plotWindow
         QGroupBox.__init__(self, 'Figure')
-        layout = QVBoxLayout()
-        self.sublayout = QGridLayout()
-        self.curvelayout = QGridLayout()
+        layout = TightVBox()
+        self.sublayout = TightGrid()
+        self.curvelayout = TightGrid()
         self.customAxes = []
 
         self.rowList = []
@@ -147,7 +148,7 @@ class Subplot(QHBoxLayout):
         self.checkbox.setCheckState(0)
         self.checkbox.stateChanged.connect(self.handleChecking)
 
-        self.comscale = QComboBox()
+        self.comscale = TightCombo()
         self.comscale.addItems(['linear', 'log'])
         self.comscale.currentIndexChanged.connect(self.updateScale)
 

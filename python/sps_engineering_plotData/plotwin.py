@@ -1,12 +1,12 @@
 from functools import partial
 
-from PyQt5.QtWidgets import QScrollArea, QComboBox, QDoubleSpinBox, QTabWidget, QWidget, QVBoxLayout, QHBoxLayout, \
-    QPushButton, QGroupBox, QGridLayout
+from PyQt5.QtWidgets import QScrollArea, QComboBox, QDoubleSpinBox, QTabWidget, QWidget, QHBoxLayout, QPushButton, \
+    QGroupBox
 from sps_engineering_plotData.curve import Curve
 from sps_engineering_plotData.graph import Graph
 from sps_engineering_plotData.pcalendar import DatePlot
 from sps_engineering_plotData.subplot import Customize
-from sps_engineering_plotData.widgets import PQCheckBox
+from sps_engineering_plotData.widgets import PQCheckBox, TightGrid, TightVBox
 
 
 class PlotWindow(QWidget):
@@ -17,8 +17,8 @@ class PlotWindow(QWidget):
         self.curveList = []
         self.extraLines = []
         self.layout = QHBoxLayout()
-        self.graph_layout = QVBoxLayout()
-        self.gbox_layout = QVBoxLayout()
+        self.graph_layout = TightVBox()
+        self.gbox_layout = TightVBox()
 
         self.tabGBActor = QTabWidget()
 
@@ -37,7 +37,7 @@ class PlotWindow(QWidget):
         self.layout.addLayout(self.gbox_layout)
 
         for widget in [self.dateplot, self.customize, self.tabGBActor]:
-            widget.setMaximumWidth(400)
+            widget.setMaximumWidth(320)
 
         self.setLayout(self.layout)
 
@@ -241,7 +241,7 @@ class TabActor(QScrollArea):
     def __init__(self, plotWindow, config):
         QScrollArea.__init__(self)
         self.widget = QWidget()
-        self.clayout = QGridLayout()
+        self.clayout = TightGrid()
 
         self.plotWindow = plotWindow
         self.config = config
@@ -270,9 +270,9 @@ class TabActor(QScrollArea):
             groupBox = QGroupBox(deviceLabel)
             groupBox.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
             groupBox.setFlat(True)
-            grid = QGridLayout()
+            grid = TightGrid()
             groupBox.setLayout(grid)
-            grid.setSpacing(0)
+
             for i, curve in enumerate(device.labels):
                 curveConf = device.curveConf(i)
                 checkbox = PQCheckBox(self, curveConf)
@@ -281,7 +281,6 @@ class TabActor(QScrollArea):
 
             self.clayout.addWidget(groupBox, nb // 2, nb % 2)
 
-        self.clayout.setSpacing(1)
         self.widget.setLayout(self.clayout)
 
     def getSpinBox(self):
