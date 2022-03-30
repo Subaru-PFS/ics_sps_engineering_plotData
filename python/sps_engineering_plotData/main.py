@@ -18,7 +18,7 @@ def main():
                         help='PostgreSQL password')
     parser.add_argument('--dbname', default='archiver', type=str, nargs='?',
                         help='Database name')
-    parser.add_argument('--fontsize', default=9, type=int, nargs='?',
+    parser.add_argument('--fontsize', default=8, type=int, nargs='?',
                         help='application font size')
 
     args = parser.parse_args()
