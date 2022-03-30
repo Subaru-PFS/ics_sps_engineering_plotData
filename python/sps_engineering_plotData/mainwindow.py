@@ -17,7 +17,7 @@ from sps_engineering_plotData.widgets import PIcon
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, **kwargs):
+    def __init__(self,  fontsize=None, **kwargs,):
         super(MainWindow, self).__init__()
 
         self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
