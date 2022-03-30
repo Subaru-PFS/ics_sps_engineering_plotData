@@ -264,8 +264,10 @@ class TabActor(QScrollArea):
 
     def getGroupbox(self):
         index = 0
-        for nb, device in enumerate(self.config):
-            groupBox = QGroupBox(device.deviceLabel)
+        config = sorted([(device.deviceLabel, device) for device in self.config], key=lambda x: x[0])
+
+        for nb, (deviceLabel, device) in enumerate(config):
+            groupBox = QGroupBox(deviceLabel)
             groupBox.setStyleSheet('QGroupBox { padding-top: 20 px;border: 1px solid gray; border-radius: 3px}')
             groupBox.setFlat(True)
             grid = QGridLayout()
