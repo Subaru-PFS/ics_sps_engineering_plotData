@@ -50,13 +50,5 @@ class NavigationToolbar(NavigationToolbar2QT):
     def isPanned2(self):
         return self.mode == _Mode.PAN
 
-    def edit_parameters(self):
-        self.canvas.fig.editAxes = True
-        try:
-            NavigationToolbar2QT.edit_parameters(self)
-        except RuntimeError as e:
-            print('INSTRM-1071 :', e)
-        self.canvas.fig.editAxes = False
-
     def setNewHome(self, limits):
         self._nav_stack.updateHome(limits)

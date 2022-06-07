@@ -14,8 +14,8 @@ class PFigure(Figure):
         self.graph = graph
 
     def draw(self, event):
-        if self.editAxes:
-            self.graph.userCustom()
+        # save user customization.
+        self.graph.userCustom()
 
         self.graph.colorStyle()
         self.formatDate()
@@ -31,11 +31,8 @@ class PFigure(Figure):
         except AttributeError:
             pass
 
-
     def saveBackground(self):
-
         bck = [self.canvas.copy_from_bbox(self.graph.allAxes[idAxes].bbox) for idAxes in self.graph.primaryAxes]
-
         return bck
 
     def formatDate(self):
