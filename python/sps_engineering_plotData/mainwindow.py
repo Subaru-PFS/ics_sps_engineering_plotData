@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         importlib.reload(confighandler)
         failed = []
 
-        filepath, fmt = QFileDialog.getOpenFileName(self, 'Open File', '/home/', "(*.yaml)")
+        filepath, fmt = QFileDialog.getOpenFileName(self, 'Open File', '/home/', "Yaml Files (*.yaml)")
         if not filepath:
             return
 
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
 
                 layout[f'ax{axeId + 1}'] = axeProperty
             filepath, fmt = QFileDialog.getSaveFileName(self, 'Save File',
-                                                        f'/home/{self.tabWidget.tabText()}.yaml', "(*.yaml)")
+                                                        f'/home/{self.tabWidget.tabText()}.yaml', "Yaml Files (*.yaml)")
             if filepath:
                 with open(os.path.expandvars(filepath), 'w') as savedFile:
                     yaml.dump(layout, savedFile)
