@@ -73,6 +73,9 @@ class Tab(QWidget):
         start = time.time()
 
         for curve in self.plotWindow.curveList:
+            if not curve.realtime:
+                continue
+
             xdata, ydata = curve.getData(doRaise=False)
 
             line = curve.line
@@ -96,8 +99,36 @@ class Tab(QWidget):
             self.dataTimer.watcher.start()
 
         self.active = True
+        self.getData()
         self.dataTimer.setPeriod()
 
     def stop(self):
         self.active = False
         self.dataTimer.setPeriod(600)
+
+        if not self.plotWindow.graph or self.plotWindow.graph.isZoomed:
+            return
+
+        self.alignXAxis()
+
+    def alignXAxis(self):
+        timing = dict()
+
+        for curve in self.plotWindow.curveList:
+            if not curve.realtime:
+                continue
+
+            line = curve.line
+            if not line:
+                continue
+
+            if curve.getAxes() not in timing:
+                timing[curve.getAxes()] = [], []
+
+            minX, maxX = timing[curve.getAxes()]
+
+            minX.append(np.min(line.get_xdata()))
+            maxX.append(np.max(line.get_xdata()))
+
+        for ax, (minX, maxX) in timing.items():
+            ax.set_xlim(np.min(minX), np.max(maxX))

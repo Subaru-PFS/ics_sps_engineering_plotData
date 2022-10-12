@@ -259,11 +259,11 @@ class Graph(FigureCanvas):
 
         return doDraw
 
-    def displayLine(self, doDraw, delay=5000):
+    def displayLine(self, doDraw, delay=500):
 
         if not self.onDrawing:
             self.onDrawing = 'doDraw' if doDraw else 'doArtist'
-            delay = delay if doDraw else 1000
+            delay = delay if doDraw else 100
             timer = QTimer.singleShot(delay, self.doDraw)
 
         else:

@@ -51,6 +51,10 @@ class Curve(object):
     def color(self):
         return self.comboColor.color
 
+    @property
+    def realtime(self):
+        return self.dateplot.realtime
+
     def getData(self, doRaise=False):
 
         try:
@@ -109,7 +113,7 @@ class Curve(object):
         except:
             raise ValueError(f'{self.tablename} does not contain any data on {self.dateplot.datetime}')
 
-        if not self.dateplot.realtime:
+        if not self.realtime:
             self.idend, __ = self.db.fetchone(self.db.rangeMax(end=str(self.dateplot.dateEnd)))
         else:
             self.idend = False
@@ -120,7 +124,7 @@ class Curve(object):
         return self.xdata, self.ydata
 
     def set_data(self, xdata, ydata):
-        if self.dateplot.realtime:
+        if self.realtime:
             timeClippingMask = (xdata[-1] - xdata) < self.dateplot.maximumTimeStretch
             xdata = xdata[timeClippingMask]
             ydata = ydata[timeClippingMask]
