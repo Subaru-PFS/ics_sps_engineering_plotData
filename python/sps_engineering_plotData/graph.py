@@ -219,29 +219,22 @@ class Graph(FigureCanvas):
             subplot = self.plotWindow.customize.allAxes[id]
             subplot.overrideAxisAndScale()
 
-    def updatePlot(self, curve, xdata, ydata):
+    def updatePlot(self, timing):
+        doDraw = False
 
-        axes = curve.getAxes()
-        line = curve.line
-
-        if line:
-            line.set_data(np.append(line.get_xdata(), xdata), np.append(line.get_ydata(), ydata))
-        else:
-            return
-
-        if self.isZoomed:
-            doDraw = False
-        else:
-            doDraw = self.updateLimits(axes, xdata, scaleY=(not self.isPanned))
+        if not self.isZoomed:
+            for axes, tmax in timing.items():
+                needDraw = self.updateLimits(axes, tmax, scaleY=(not self.isPanned))
+                doDraw = needDraw if needDraw else doDraw
 
         self.displayLine(doDraw=doDraw)
 
-    def updateLimits(self, axes, xdata, scaleY=True, doDraw=False):
+    def updateLimits(self, axes, nTmax, scaleY=True, doDraw=False):
         tmin, tmax = axes.get_xlim()
 
-        if np.max(xdata) > (tmax - 0.01 * (tmax - tmin)):
+        if nTmax > (tmax - 0.01 * (tmax - tmin)):
             tmin = max(tmin, np.min([np.min(curve.get_xdata()) for curve in self.plotWindow.axes2curves[axes]]))
-            axes.set_xlim(self.calc_lim(tmin, np.max(xdata), f1=0, f2=0.15))
+            axes.set_xlim(self.calc_lim(tmin, nTmax, f1=0, f2=0.15))
             doDraw = True
 
         if scaleY:

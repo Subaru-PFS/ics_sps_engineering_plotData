@@ -107,6 +107,9 @@ class Customize(QGroupBox):
         self.plotWindow.removeCurve(row.curve)
 
     def cleanRows(self):
+        inter = sorted([(row, str(row.curve)) for row in self.rowList], key=lambda x: x[1])
+        self.rowList = [row for row, __ in inter]
+
         for ind, row in enumerate(self.rowList):
             row.addWidgets(self.curvelayout, ind)
 

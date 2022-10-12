@@ -1,7 +1,5 @@
-import time
-
 import numpy as np
-from PyQt5.QtCore import QTimer
+
 from matplotlib import colors as mcolors
 from sps_engineering_plotData.widgets import ComboColor
 
@@ -11,10 +9,6 @@ class Curve(object):
         object.__init__(self)
         self.axes = None
         self.line = False
-
-        self.watcher = QTimer(plotWindow)
-        self.watcher.timeout.connect(self.getData)
-        self.period = 10 * [0.1]
 
         self.xdata = []
         self.ydata = []
@@ -33,21 +27,13 @@ class Curve(object):
 
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
 
-        try:
-            self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
-        except:
-            raise ValueError(f'{self.tablename} does not contain any data on {self.dateplot.datetime}')
-
-        if not self.dateplot.realtime:
-            self.idend, __ = self.db.fetchone(self.db.rangeMax(end=str(self.dateplot.dateEnd)))
-        else:
-            self.idend = False
-
-        self.start()
+        self.initialize()
 
     def __del__(self):
         self.removeLine()
-        self.stop()
+
+    def __str__(self):
+        return f'{self.tablename}__{self.key}'
 
     @property
     def graph(self):
@@ -65,8 +51,8 @@ class Curve(object):
     def color(self):
         return self.comboColor.color
 
-    def getData(self, atStart=False):
-        t0 = time.time()
+    def getData(self, doRaise=False):
+
         try:
             dataset = self.db.dataBetweenId(self.tablename, self.key, self.idstart, maxId=self.idend)
             values = dataset[self.key].values
@@ -77,27 +63,16 @@ class Curve(object):
             self.set_data(np.append(self.get_xdata(), xdata), np.append(self.get_ydata(), ydata))
             self.idstart = dataset['id'].values[-1] + 1
 
-            if not atStart:
-                self.graph.updatePlot(self, xdata, ydata)
-            else:
-                if not len(self.get_xdata()):
-                    raise Exception("All values are NaN")
+            if doRaise and not len(self.get_xdata()):
+                raise Exception("All values are NaN")
+
         except ValueError:
-            pass
+            xdata = ydata = np.array([])
         except UserWarning as e:
             self.plotWindow.mainwindow.showError(str(e))
             return
 
-        self.timerPeriod(time.time() - t0, atStart=atStart)
-
-    def timerPeriod(self, tdelta, atStart):
-        if not atStart:
-            self.period.append(tdelta)
-
-        self.period = self.period[-10:]
-        period = 100 * 1000 * np.mean(self.period)
-        period = min(max(2000, period), 120000)
-        self.watcher.setInterval(int(period))
+        return xdata, ydata
 
     def setAxes(self, axes):
         self.axes = axes
@@ -128,13 +103,18 @@ class Curve(object):
             del self.line
             self.line = False
 
-    def stop(self):
-        self.watcher.stop()
+    def initialize(self):
+        try:
+            self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
+        except:
+            raise ValueError(f'{self.tablename} does not contain any data on {self.dateplot.datetime}')
 
-    def start(self, atStart=True):
-        self.getData(atStart=atStart)
-        if not self.idend and not self.watcher.isActive():
-            self.watcher.start()
+        if not self.dateplot.realtime:
+            self.idend, __ = self.db.fetchone(self.db.rangeMax(end=str(self.dateplot.dateEnd)))
+        else:
+            self.idend = False
+
+        self.getData(doRaise=True)
 
     def get_data(self):
         return self.xdata, self.ydata
