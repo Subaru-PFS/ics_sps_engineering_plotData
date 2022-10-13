@@ -229,12 +229,15 @@ class Graph(FigureCanvas):
 
         self.displayLine(doDraw=doDraw)
 
-    def updateLimits(self, axes, nTmax, scaleY=True, doDraw=False):
-        tmin, tmax = axes.get_xlim()
+    def updateLimits(self, axes, tmax, scaleY=True, doDraw=False):
+        ax_tmin, ax_tmax = axes.get_xlim()
+        ax_duration = ax_tmax - ax_tmin
 
-        if nTmax > (tmax - 0.01 * (tmax - tmin)):
-            tmin = max(tmin, np.min([np.min(curve.get_xdata()) for curve in self.plotWindow.axes2curves[axes]]))
-            axes.set_xlim(self.calc_lim(tmin, nTmax, f1=0, f2=0.15))
+        tmin = np.min([np.min(curve.get_xdata()) for curve in self.plotWindow.axes2curves[axes]])
+
+        if tmax > (ax_tmax - 0.01 * ax_duration) or tmin > (ax_tmin + 0.02 * ax_duration):
+            tmin = max(tmin, ax_tmin)
+            axes.set_xlim(self.calc_lim(tmin, tmax, f1=0, f2=0.15))
             doDraw = True
 
         if scaleY:
@@ -244,7 +247,7 @@ class Graph(FigureCanvas):
                     delta = 0.03 * (ymax - ymin)
 
                     curves = self.plotWindow.axes2curves[ax]
-                    indices = [indFinder(curve.get_xdata(), tmin) for curve in curves]
+                    indices = [indFinder(curve.get_xdata(), ax_tmin) for curve in curves]
 
                     newMin = np.min([np.min(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
                     newMax = np.max([np.max(curve.get_ydata()[ind:]) for curve, ind in zip(curves, indices)])
