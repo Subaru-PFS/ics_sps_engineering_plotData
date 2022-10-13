@@ -80,7 +80,7 @@ class PTabWidget(QTabWidget):
         self.activeTab = currWidget
 
         if self.activeTab is not None:
-            self.activeTab.restart()
+            self.activeTab.start()
 
     def tabText(self, index=None):
         index = self.currentIndex() if index is None else index

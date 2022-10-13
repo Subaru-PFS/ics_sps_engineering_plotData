@@ -13,6 +13,7 @@ class PlotWindow(QWidget):
     def __init__(self, tab):
         super(PlotWindow, self).__init__()
         self.tab = tab
+        self.graph = None
         self.allAxes = {}
         self.curveList = []
         self.extraLines = []
@@ -73,6 +74,7 @@ class PlotWindow(QWidget):
             self.graph.close()
             self.graph_layout.removeWidget(self.graph)
             self.graph.deleteLater()
+            self.graph = None
         except AttributeError:
             pass
 
@@ -136,6 +138,10 @@ class PlotWindow(QWidget):
     def appendCurve(self, new_curve):
 
         self.curveList.append(new_curve)
+
+        inter = sorted([(curve, str(curve)) for curve in self.curveList], key=lambda x: x[1])
+        self.curveList = [curve for curve,__ in inter]
+
         self.customize.appendRow(new_curve)
 
     def switchCurve(self, axeId, curve):
