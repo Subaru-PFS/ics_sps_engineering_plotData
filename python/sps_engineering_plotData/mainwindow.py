@@ -17,7 +17,7 @@ from sps_engineering_plotData.widgets import PIcon
 
 class MainWindow(QMainWindow):
 
-    def __init__(self,  fontsize=None, **kwargs,):
+    def __init__(self, fontsize=None, **kwargs, ):
         super(MainWindow, self).__init__()
 
         self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.resize(1024, 768)
         self.move(300, 300)
         self.setWindowTitle('ics_sps_engineering_plotData')
-        #self.showMaximized()
+        # self.showMaximized()
         self.show()
         self.db = ArchiverHandler(**kwargs)
         try:
@@ -161,3 +161,13 @@ class MainWindow(QMainWindow):
 
     def showInformation(self, information):
         reply = QMessageBox.information(self, 'Message', information, QMessageBox.Ok)
+
+    def closeEvent(self, event):
+        """Adding confirmation message to close the program."""
+        reply = QMessageBox.question(self, 'Message',
+                                     'Do you want to quit this program?', QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
