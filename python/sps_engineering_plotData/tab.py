@@ -76,7 +76,12 @@ class Tab(QWidget):
             if not curve.realtime:
                 continue
 
-            xdata, ydata = curve.getData(doRaise=False)
+            # data can return None, if case of failure.
+            data = curve.getData(doRaise=False)
+            if not data:
+                continue
+
+            xdata, ydata = data
 
             line = curve.line
             if not line:
