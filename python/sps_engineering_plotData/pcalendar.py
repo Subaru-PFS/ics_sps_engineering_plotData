@@ -134,7 +134,12 @@ class DatePlot(QWidget):
     def loadConf(self):
         datestr = self.dateStr.text()
         if len(datestr) in [10, 16]:
-            self.datetime = str2date(datestr)
+            try:
+                self.datetime = str2date(datestr)
+            except Exception as e:
+                self.mainwindow.showError(str(e))
+                return
+
             if not self.cal.confAuto.isChecked():
                 self.config = loadConf(self.dateStr.text())
             else:
