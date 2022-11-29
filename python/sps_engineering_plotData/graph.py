@@ -94,6 +94,8 @@ class Graph(FigureCanvas):
         for newAxes in custom:
             if newAxes.id == 0:
                 axes = self.fig.add_subplot(subplotsize + 1)
+                # declaring xaxis is date.
+                axes.xaxis.axis_date()
             elif newAxes.id == 1:
                 axes = AllAxes[0].twinx()
                 axes.format_coord = make_format(axes, AllAxes[0])
@@ -118,7 +120,10 @@ class Graph(FigureCanvas):
     def plot_date(self, curve):
         ax = curve.getAxes()
 
-        line, = ax.plot_date(curve.get_xdata(), curve.get_ydata(), '-', color=curve.color, label=curve.label)
+        # retrieving which plotting function to use from dataType.
+        plotFunc = ax.plot if curve.dataType == 'real' else ax.step
+        line, = plotFunc(curve.get_xdata(), curve.get_ydata(), '-', color=curve.color, label=curve.label)
+
         curve.setLine(line)
 
     @draw

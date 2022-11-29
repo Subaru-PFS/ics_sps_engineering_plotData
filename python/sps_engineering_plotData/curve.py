@@ -26,6 +26,7 @@ class Curve(object):
         self.yscale = curveConf.yscale
 
         self.ranges = [float(rang) for rang in curveConf.trange.split(';')]
+        self.dataType = None
 
         self.initialize()
 
@@ -108,6 +109,11 @@ class Curve(object):
             self.line = False
 
     def initialize(self):
+        try:
+            self.dataType = self.db.getDataType(self.tablename, self.key)
+        except:
+            raise ValueError(f'unknown {self.tablename}.{self.key} table and column.')
+
         try:
             self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
         except:
