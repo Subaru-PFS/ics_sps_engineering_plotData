@@ -262,8 +262,10 @@ class Graph(FigureCanvas):
 
                     if not (newMin == ymin and newMax == ymax):
                         logy = True if ax.get_yscale() == 'log' else False
-                        ax.set_ylim(self.calc_lim(newMin, newMax, logy=logy))
-                        doDraw = True
+                        ymin, ymax = self.calc_lim(newMin, newMax, logy=logy)
+                        if np.isfinite(ymin) and np.isfinite(ymax):
+                            ax.set_ylim(ymin, ymax)
+                            doDraw = True
 
         return doDraw
 
