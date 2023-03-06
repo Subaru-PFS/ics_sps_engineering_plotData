@@ -100,6 +100,11 @@ class Curve(object):
     def updateProp(self):
         self.label = self.line.get_label()
         self.comboColor.newColor(mcolors.to_hex(self.line.get_color()))
+        try:
+            [curveRow] = [curveRow for curveRow in self.plotWindow.customize.rowList if curveRow.curve==self]
+            curveRow.label.setText(self.label)
+        except:
+            pass
 
     def removeLine(self):
 

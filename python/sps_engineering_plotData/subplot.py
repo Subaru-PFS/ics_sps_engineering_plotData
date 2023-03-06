@@ -12,6 +12,7 @@ class CurveRow():
 
         self.buttonDelete = self.buttonDelete()
         self.label = QLabel(curve.label)
+        self.label.setToolTip(str(curve))
 
     @property
     def widgetList(self):
