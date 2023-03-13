@@ -164,7 +164,7 @@ class DatePlot(QWidget):
             return
 
         startdate = str2date(self.dateStr.text())
-        mindate = dt.datetime.utcnow() - dt.timedelta(days=self.cal.spinboxDays.value())
+        mindate = dt.datetime.utcnow() - dt.timedelta(days=self.cal.maximumTimeStretch.value())
 
         mindate = max(mindate, startdate)
         self.updateDate(mindate)
