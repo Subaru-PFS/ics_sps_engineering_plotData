@@ -17,6 +17,10 @@ class Curve(object):
         self.comboColor = ComboColor(len(self.plotWindow.curveList))
         self.comboColor.currentIndexChanged.connect(self.updateColor)
 
+        # setting saved color if got one.
+        if hasattr(curveConf, 'color'):
+            self.comboColor.newColor(mcolors.to_hex(curveConf.color))
+
         self.type = curveConf.type
         self.label = curveConf.fullLabel
         self.tablename = curveConf.tablename
@@ -101,7 +105,7 @@ class Curve(object):
         self.label = self.line.get_label()
         self.comboColor.newColor(mcolors.to_hex(self.line.get_color()))
         try:
-            [curveRow] = [curveRow for curveRow in self.plotWindow.customize.rowList if curveRow.curve==self]
+            [curveRow] = [curveRow for curveRow in self.plotWindow.customize.rowList if curveRow.curve == self]
             curveRow.label.setText(self.label)
         except:
             pass
@@ -150,4 +154,4 @@ class Curve(object):
         return self.ydata
 
     def as_dict(self):
-        return dict(fullLabel=self.label, type=self.type, tablename=self.tablename, key=self.key)
+        return dict(fullLabel=self.label, type=self.type, tablename=self.tablename, key=self.key, color=self.color)
