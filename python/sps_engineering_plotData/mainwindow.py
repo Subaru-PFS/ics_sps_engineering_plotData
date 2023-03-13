@@ -198,13 +198,17 @@ class MainWindow(QMainWindow):
             tabText = str(self.tabWidget.tabText(index))
 
             tab = self.tabWidget.widget(index)
-            tab.plotWindow.dateplot.updateMinDate()
+
+            dateplot = tab.plotWindow.dateplot
+            dateplot.updateMinDate()
+            spinBox = dateplot.cal.maximumTimeStretch if dateplot.realtime else dateplot.cal.spinboxDays
 
             if tab.plotWindow.graph is None:
                 continue
 
-            layout['dateStr'] = str(tab.plotWindow.dateplot.dateStr.text())
-            layout['realtime'] = bool(tab.plotWindow.dateplot.realtime)
+            layout['dateStr'] = str(dateplot.dateStr.text())
+            layout['realtime'] = bool(dateplot.realtime)
+            layout['nDays'] = int(spinBox.value())
 
             layout.update(self.tabToDict(tab))
             state[tabText] = layout
@@ -220,11 +224,15 @@ class MainWindow(QMainWindow):
             self.tabWidget.addNameTab(tabName, doShowCalendar=False)
             dateStr = cfg.pop('dateStr')
             realtime = cfg.pop('realtime')
+            nDays = cfg.pop('nDays')
 
             tab = self.tabWidget.currentWidget()
+            dateplot = tab.plotWindow.dateplot
+            spinBox = dateplot.cal.maximumTimeStretch if dateplot.realtime else dateplot.cal.spinboxDays
 
-            tab.plotWindow.dateplot.dateStr.setText(dateStr)
-            tab.plotWindow.dateplot.cal.checkboxRealTime.setCheckState(2 * int(realtime))
+            dateplot.dateStr.setText(dateStr)
+            dateplot.cal.checkboxRealTime.setCheckState(2 * int(realtime))
+            spinBox.setValue(nDays)
 
             self.loadLayoutInTab(tab, cfg)
 
