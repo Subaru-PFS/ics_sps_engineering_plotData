@@ -9,6 +9,7 @@ from functools import partial
 import sps_engineering_Lib_dataQuery.confighandler as confighandler
 import sps_engineering_plotData as plotData
 import yaml
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox, QFileDialog
 from sps_engineering_plotData.archiver import ArchiverHandler
 from sps_engineering_plotData.tabwidget import PTabWidget
@@ -36,6 +37,18 @@ class MainWindow(QMainWindow):
             self.db.connect()
         except Exception as e:
             self.showError(str(e))
+
+        if os.path.isfile('/tmp/plotdata.save') and QMessageBox.question(self, 'Message',
+                                                                         'Do you want to reload '
+                                                                         'previous configuration ?',
+                                                                         QMessageBox.Yes | QMessageBox.No,
+                                                                         QMessageBox.No) == QMessageBox.Yes:
+            self.loadLastState()
+
+        self.saveStateClock = QTimer(self)
+        self.saveStateClock.setInterval(1000*300)
+        self.saveStateClock.timeout.connect(self.saveCurrentState)
+        self.saveStateClock.start()
 
     def getCuArms(self):
         cuArms = []
@@ -70,8 +83,9 @@ class MainWindow(QMainWindow):
         self.about_action = QAction('About', self)
 
         self.new_tab_action.triggered.connect(self.tabWidget.dialogTab)
-        self.about_action.triggered.connect(
-            partial(self.showInformation, 'ics_sps_engineering_plotData made for PFS by ALF'))
+
+        self.about_action.triggered.connect(partial(self.showInformation,
+                                                    'ics_sps_engineering_plotData made for PFS by ALF'))
 
         self.load_layout_action.triggered.connect(self.loadLayout)
         self.save_layout_action.triggered.connect(self.saveLayout)
@@ -103,21 +117,7 @@ class MainWindow(QMainWindow):
         try:
             title, __ = os.path.splitext(os.path.basename(filepath))
             self.tabWidget.addNameTab(title)
-            plotWindow = self.tabWidget.currentWidget().plotWindow
-            plotWindow.dateplot.cal.exec_()
-            plotWindow.addAxes(layout.keys())
-
-            for axeId, axeProperty in layout.items():
-                id = int(axeId[-1]) - 1
-                axes = plotWindow.allAxes[id]
-                for curveProperty in axeProperty['curves']:
-                    try:
-                        plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
-                    except Exception as e:
-                        failed.append(f'{curveProperty["fullLabel"]}:{str(e)}')
-
-                subplot = plotWindow.customize.allAxes[id]
-                subplot.overrideAxisAndScale(ylabel=axeProperty['ylabel'], yscale=axeProperty['yscale'])
+            failed = self.loadLayoutInTab(self.tabWidget.currentWidget(), layout)
 
         except Exception as e:
             self.tabWidget.removeTab(self.tabWidget.currentIndex())
@@ -126,8 +126,42 @@ class MainWindow(QMainWindow):
         if failed:
             self.showError('\r\n'.join(failed))
 
-    def saveLayout(self):
+    def tabToDict(self, tab):
         layout = dict()
+
+        curves = tab.plotWindow.axes2curves
+
+        axes = tab.plotWindow.graph.allAxes
+        for axeId, axe in axes.items():
+            axeCurves = curves[axe]
+            axeProperty = dict(ylabel=axe.get_ylabel(), yscale=axe.get_yscale(),
+                               curves=[curve.as_dict() for curve in axeCurves])
+
+            layout[f'ax{axeId + 1}'] = axeProperty
+
+        return layout
+
+    def loadLayoutInTab(self, tab, layout):
+        failed = []
+
+        plotWindow = tab.plotWindow
+        plotWindow.addAxes(layout.keys())
+
+        for axeId, axeProperty in layout.items():
+            id = int(axeId[-1]) - 1
+            axes = plotWindow.allAxes[id]
+            for curveProperty in axeProperty['curves']:
+                try:
+                    plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
+                except Exception as e:
+                    failed.append(f'{curveProperty["fullLabel"]}:{str(e)}')
+
+            subplot = plotWindow.customize.allAxes[id]
+            subplot.overrideAxisAndScale(ylabel=axeProperty['ylabel'], yscale=axeProperty['yscale'])
+
+        return failed
+
+    def saveLayout(self):
 
         try:
             tab = self.tabWidget.currentWidget()
@@ -137,13 +171,7 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            axes = tab.plotWindow.graph.allAxes
-            for axeId, axe in axes.items():
-                axeCurves = curves[axe]
-                axeProperty = dict(ylabel=axe.get_ylabel(), yscale=axe.get_yscale(),
-                                   curves=[curve.as_dict() for curve in axeCurves])
-
-                layout[f'ax{axeId + 1}'] = axeProperty
+            layout = self.tabToDict(tab)
             filepath, fmt = QFileDialog.getSaveFileName(self, 'Save File',
                                                         f'/home/{self.tabWidget.tabText()}.yaml', "Yaml Files (*.yaml)")
             if filepath:
@@ -155,6 +183,50 @@ class MainWindow(QMainWindow):
 
         except PermissionError as e:
             self.showError(str(e))
+
+    def saveCurrentState(self):
+        try:
+            self._saveCurrentState()
+        except Exception as e:
+            print(e)  # I haven't setups any logging ... meh !
+
+    def _saveCurrentState(self):
+        state = dict()
+
+        for index in range(self.tabWidget.count()):
+            layout = dict()
+            tabText = str(self.tabWidget.tabText(index))
+
+            tab = self.tabWidget.widget(index)
+            tab.plotWindow.dateplot.updateMinDate()
+
+            if tab.plotWindow.graph is None:
+                continue
+
+            layout['dateStr'] = str(tab.plotWindow.dateplot.dateStr.text())
+            layout['realtime'] = bool(tab.plotWindow.dateplot.realtime)
+
+            layout.update(self.tabToDict(tab))
+            state[tabText] = layout
+
+        with open(os.path.expandvars('/tmp/plotdata.save'), 'w') as savedFile:
+            yaml.dump(state, savedFile)
+
+    def loadLastState(self):
+        with open(os.path.expandvars('/tmp/plotdata.save'), 'r') as cfgFile:
+            state = yaml.load(cfgFile, Loader=yaml.FullLoader)
+
+        for tabName, cfg in state.items():
+            self.tabWidget.addNameTab(tabName, doShowCalendar=False)
+            dateStr = cfg.pop('dateStr')
+            realtime = cfg.pop('realtime')
+
+            tab = self.tabWidget.currentWidget()
+
+            tab.plotWindow.dateplot.dateStr.setText(dateStr)
+            tab.plotWindow.dateplot.cal.checkboxRealTime.setCheckState(2 * int(realtime))
+
+            self.loadLayoutInTab(tab, cfg)
 
     def showError(self, error):
         reply = QMessageBox.critical(self, 'Exception', error, QMessageBox.Ok)

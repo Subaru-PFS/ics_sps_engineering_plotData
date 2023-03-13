@@ -1,4 +1,5 @@
 __author__ = 'alefur'
+
 from PyQt5.QtWidgets import QTabWidget, QInputDialog, QMessageBox, QTabBar, QLineEdit
 
 from sps_engineering_plotData.tab import Tab
@@ -59,10 +60,14 @@ class PTabWidget(QTabWidget):
             text = 'untitled' if not text else text
             self.addNameTab(name=text)
 
-    def addNameTab(self, name):
+    def addNameTab(self, name, doShowCalendar=True):
         widget = Tab(self)
         self.addTab(widget, name)
         self.setCurrentWidget(widget)
+
+        if doShowCalendar:
+            widget.plotWindow.dateplot.cal.show()
+            widget.plotWindow.dateplot.cal.exec_()
 
     def delTab(self, k):
         reply = QMessageBox.question(self, 'Message',

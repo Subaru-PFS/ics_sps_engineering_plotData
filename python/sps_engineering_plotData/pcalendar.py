@@ -33,7 +33,7 @@ class Calendar(QDialog):
 
         self.checkboxPastRuns = QCheckBox('Archived')
         self.spinboxDays = QSpinBox()
-        self.spinboxDays.setRange(1, 100)
+        self.spinboxDays.setRange(1, 999)
         self.spinboxDays.setValue(1)
 
         self.confAuto.setChecked(0)
@@ -109,7 +109,6 @@ class DatePlot(QWidget):
         self.layout.addWidget(self.choseDate, 0, 1)
         self.layout.addWidget(self.dateStr, 0, 2, 1, 5)
 
-        self.cal.show()
         self.setLayout(self.layout)
 
     @property
@@ -159,3 +158,14 @@ class DatePlot(QWidget):
             self.plotWindow.graph.draw_idle()
         except AttributeError:
             pass
+
+    def updateMinDate(self):
+        if not self.realtime:
+            return
+
+        startdate = str2date(self.dateStr.text())
+        mindate = dt.datetime.utcnow() - dt.timedelta(days=self.cal.spinboxDays.value())
+
+        mindate = max(mindate, startdate)
+        self.updateDate(mindate)
+
