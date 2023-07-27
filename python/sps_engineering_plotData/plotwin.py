@@ -230,7 +230,7 @@ class PlotWindow(QWidget):
         if mergeAIT:
             return 'AIT'
         else:
-            return tablename.split('__')[0].upper()
+            return tablename.split('__', 1)[0].upper()
 
     def sortCfg(self, config):
         sortedDict = {}
