@@ -20,9 +20,27 @@ from PyQt5.QtWidgets import QSizePolicy, QCheckBox, QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 from pandas.plotting import register_matplotlib_converters
 
+
+def getTimeZone():
+    """ Return the timezone. Extracted from a DNS TXT record. """
+    defaultTimeZone = 'UTC'
+
+    import dns.resolver
+    try:
+        ans = dns.resolver.query('pfs-site.', 'TXT')
+        site = ans[0].strings[0].decode('latin-1')
+        timezone = 'US/Hawaii' if site == 'S' else defaultTimeZone
+    except dns.resolver.NXDOMAIN:
+        timezone = defaultTimeZone
+
+    print('timezone=', timezone)
+    return timezone
+
+
 register_matplotlib_converters()
 
-rcParams.update({'figure.autolayout': True})
+rcParams.update({'figure.autolayout': True,
+                 'timezone': getTimeZone()})
 plt.style.use('ggplot')
 
 
