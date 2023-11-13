@@ -446,10 +446,14 @@ class Graph(FigureCanvas):
             data = [ax.transData.transform((curve.get_xdata()[i], curve.get_ydata()[i])) for i in range(imin, imax)]
             delta = [np.sqrt((x - pix_point_x) ** 2 + (y - pix_point_y) ** 2) for x, y in data]
 
+            if not len(delta):
+                continue
+
             results.append((np.argmin(delta) + imin, np.min(delta), curve))
 
-        if not results:
+        if not len(results):
             return
+
         ind_dist, min_dist, curve = results[np.argmin([mini for argmin, mini, curve in results])]
         valx, valy = curve.get_xdata()[ind_dist], curve.get_ydata()[ind_dist]
 
