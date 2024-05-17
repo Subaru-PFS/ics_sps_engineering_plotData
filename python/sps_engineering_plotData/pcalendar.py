@@ -8,6 +8,19 @@ from sps_engineering_Lib_dataQuery.confighandler import loadConf
 from sps_engineering_Lib_dataQuery.dates import str2date
 
 
+def convertDatetimeToQDate(datetime):
+    """
+    Convert a datetime.datetime object to a PyQt5 QDate object.
+
+    Args:
+        datetime (datetime.datetime): The datetime object to be converted.
+
+    Returns:
+        QDate: The converted QDate object.
+    """
+    return QDate(datetime.year, datetime.month, datetime.day)
+
+
 class Calendar(QDialog):
     def __init__(self, dateplot):
         self.dateplot = dateplot
@@ -65,11 +78,15 @@ class Calendar(QDialog):
         self.setWindowTitle('Calendar')
         self.setWindowModality(Qt.ApplicationModal)
 
-    def showDate(self, date=None):
-        date = self.cal.selectedDate() if date is None else date
+    def showDate(self, qdate=None):
+        if qdate:
+            self.cal.setSelectedDate(qdate)
+            date = qdate
+        else:
+            date = self.cal.selectedDate()
 
         date = dt.datetime.combine(date.toPyDate(), dt.datetime.min.time())
-        self.dateplot.updateDate(date)
+        self.dateplot.updateDateStr(date)
 
     def closeEvent(self, event):
         self.hide()
@@ -95,6 +112,7 @@ class DatePlot(QWidget):
         self.dateStr.textChanged.connect(self.loadConf)
         self.cal = Calendar(self)
         self.cal.showDate()
+        self.updateMinDate()
 
         self.choseDate = QPushButton(self)
         self.choseDate.setIcon(self.mainwindow.icon_calendar)
@@ -103,6 +121,9 @@ class DatePlot(QWidget):
         self.refresh = QPushButton(self)
         self.refresh.setIcon(self.mainwindow.icon_refresh)
         self.refresh.clicked.connect(self.tryDraw)
+
+        self.cal.maximumTimeStretch.valueChanged.connect(self.updateMinDate)
+        self.cal.checkboxRealTime.stateChanged.connect(self.updateMinDate)
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.refresh, 0, 0)
@@ -127,7 +148,7 @@ class DatePlot(QWidget):
     def dateEnd(self):
         return self.datetime + dt.timedelta(days=self.cal.spinboxDays.value())
 
-    def updateDate(self, datetime):
+    def updateDateStr(self, datetime):
         self.dateStr.setText(datetime.isoformat()[:-3])
 
     def loadConf(self):
@@ -159,13 +180,19 @@ class DatePlot(QWidget):
         except AttributeError:
             pass
 
+    def minDate(self):
+        mindate = dt.datetime.utcnow() - dt.timedelta(days=self.cal.maximumTimeStretch.value())
+        mindate = mindate if self.realtime else None
+        return mindate
+
     def updateMinDate(self):
-        if not self.realtime:
+        mindate = self.minDate()
+        if not mindate:
+            self.cal.cal.setMinimumDate(QDate.fromString("0001-01-01", "yyyy-MM-dd"))
             return
 
+        self.cal.cal.setMinimumDate(convertDatetimeToQDate(mindate))
         startdate = str2date(self.dateStr.text())
-        mindate = dt.datetime.utcnow() - dt.timedelta(days=self.cal.maximumTimeStretch.value())
-
         mindate = max(mindate, startdate)
-        self.updateDate(mindate)
 
+        self.cal.showDate(qdate=convertDatetimeToQDate(mindate))
