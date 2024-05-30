@@ -192,7 +192,12 @@ class DatePlot(QWidget):
             return
 
         self.cal.cal.setMinimumDate(convertDatetimeToQDate(mindate))
-        startdate = str2date(self.dateStr.text())
+        try:
+            startdate = str2date(self.dateStr.text())
+        except Exception as e:
+            self.mainwindow.showError(str(e))
+            return
+
         mindate = max(mindate, startdate)
 
         self.cal.showDate(qdate=convertDatetimeToQDate(mindate))
