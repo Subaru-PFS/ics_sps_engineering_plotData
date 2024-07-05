@@ -16,11 +16,11 @@ class TightCombo(QComboBox):
 
     def addItem(self, *args, **kwargs):
         QComboBox.addItem(self, *args, **kwargs)
-        self.setMaximumHeight(self.sizeHint().height() * 0.85)
+        self.setMaximumHeight(int(round(self.sizeHint().height() * 0.85)))
 
     def addItems(self, *args, **kwargs):
         QComboBox.addItems(self, *args, **kwargs)
-        self.setMaximumHeight(self.sizeHint().height() * 0.85)
+        self.setMaximumHeight(int(round(self.sizeHint().height() * 0.85)))
 
 
 class TightGrid(QGridLayout):
