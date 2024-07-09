@@ -16,11 +16,11 @@ class TightCombo(QComboBox):
 
     def addItem(self, *args, **kwargs):
         QComboBox.addItem(self, *args, **kwargs)
-        self.setMaximumHeight(self.sizeHint().height() * 0.85)
+        self.setMaximumHeight(int(round(self.sizeHint().height() * 0.85)))
 
     def addItems(self, *args, **kwargs):
         QComboBox.addItems(self, *args, **kwargs)
-        self.setMaximumHeight(self.sizeHint().height() * 0.85)
+        self.setMaximumHeight(int(round(self.sizeHint().height() * 0.85)))
 
 
 class TightGrid(QGridLayout):
@@ -126,7 +126,11 @@ class ExtraLine(object):
     def remove(self):
         try:
             ax = self.line.axes
-            ax.lines.remove(self.line)
+            try:
+                ax.lines.remove(self.line)
+            except AttributeError:
+                self.line.remove()
+
             del self.line
             self.label.hide()
             self.label.close()
@@ -206,7 +210,8 @@ class VCursor(QPushButton):
             yOffset = self.buildText(vLine, tpoint, cvs)
             xOffset = 0 if (x + vLine.label.width()) < frameSize.width() else vLine.label.width()
 
-            vLine.label.move(x - xOffset, (fact[idAxes] - VCursor.offsetY[idAxes]) * frameSize.height() - yOffset)
+            vLine.label.move(int(round(x - xOffset)),
+                             int(round((fact[idAxes] - VCursor.offsetY[idAxes]) * frameSize.height() - yOffset)))
 
         self.graph.doArtist()
 

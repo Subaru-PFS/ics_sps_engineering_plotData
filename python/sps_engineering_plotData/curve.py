@@ -113,7 +113,11 @@ class Curve(object):
     def removeLine(self):
 
         if self.line:
-            self.axes.lines.remove(self.line)
+            try:
+                self.axes.lines.remove(self.line)
+            except AttributeError:
+                self.line.remove()
+
             del self.line
             self.line = False
 
