@@ -110,7 +110,10 @@ class PlotWindow(QWidget):
     def unsetLines(self, axes, newAxes):
         while axes.lines:
             line = axes.lines[0]
-            axes.lines.remove(line)
+            try:
+                axes.lines.remove(line)
+            except AttributeError:
+                line.remove()
             try:
                 curve = self.line2Curve[line]
                 curve.line = False
