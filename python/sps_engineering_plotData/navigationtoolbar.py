@@ -2,6 +2,11 @@ from matplotlib import cbook
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT
 
 try:
+    _Stack = cbook.Stack
+except AttributeError:
+    _Stack = cbook._Stack
+
+try:
     from matplotlib.backend_bases import _Mode
 
     oldVersion = False
@@ -9,9 +14,9 @@ except ImportError:
     oldVersion = True
 
 
-class NStack(cbook.Stack):
+class NStack(_Stack):
     def __init__(self):
-        cbook.Stack.__init__(self)
+        _Stack.__init__(self)
 
     def updateHome(self, limits):
         if not len(self._elements):
