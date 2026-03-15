@@ -8,7 +8,7 @@ class Curve(object):
     def __init__(self, plotWindow, curveConf):
         object.__init__(self)
         self.axes = None
-        self.line = False
+        self.line = None
 
         self.xdata = []
         self.ydata = []
@@ -107,7 +107,7 @@ class Curve(object):
         try:
             [curveRow] = [curveRow for curveRow in self.plotWindow.customize.rowList if curveRow.curve == self]
             curveRow.label.setText(self.label)
-        except:
+        except ValueError:
             pass
 
     def removeLine(self):
@@ -119,17 +119,17 @@ class Curve(object):
                 self.line.remove()
 
             del self.line
-            self.line = False
+            self.line = None
 
     def initialize(self):
         try:
             self.dataType = self.db.getDataType(self.tablename, self.key)
-        except:
+        except Exception:
             raise ValueError(f'unknown {self.tablename}.{self.key} table and column.')
 
         try:
             self.idstart = self.db.idFromDate(self.tablename, date=self.dateplot.datetime)
-        except:
+        except Exception:
             raise ValueError(f'{self.tablename} does not contain any data on {self.dateplot.datetime}')
 
         if not self.realtime:

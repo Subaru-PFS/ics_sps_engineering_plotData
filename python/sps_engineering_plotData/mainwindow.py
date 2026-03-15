@@ -4,7 +4,10 @@
 
 import importlib
 import os
+import tempfile
 from functools import partial
+
+STATE_SAVE_PATH = '/software/ait/backup/plotdata.save'
 
 import sps_engineering_Lib_dataQuery.confighandler as confighandler
 import sps_engineering_plotData as plotData
@@ -38,7 +41,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.showError(str(e))
 
-        if os.path.isfile('/tmp/plotdata.save') and QMessageBox.question(self, 'Message',
+        if os.path.isfile(STATE_SAVE_PATH) and QMessageBox.question(self, 'Message',
                                                                          'Do you want to reload '
                                                                          'previous configuration ?',
                                                                          QMessageBox.Yes | QMessageBox.No,
@@ -213,11 +216,18 @@ class MainWindow(QMainWindow):
             layout.update(self.tabToDict(tab))
             state[tabText] = layout
 
-        with open(os.path.expandvars('/tmp/plotdata.save'), 'w') as savedFile:
-            yaml.dump(state, savedFile)
+        savepath = STATE_SAVE_PATH
+        fd, tmppath = tempfile.mkstemp(dir=os.path.dirname(savepath), suffix='.save')
+        try:
+            with os.fdopen(fd, 'w') as tmpFile:
+                yaml.dump(state, tmpFile)
+            os.replace(tmppath, savepath)
+        except Exception:
+            os.unlink(tmppath)
+            raise
 
     def loadLastState(self):
-        with open(os.path.expandvars('/tmp/plotdata.save'), 'r') as cfgFile:
+        with open(STATE_SAVE_PATH, 'r') as cfgFile:
             state = yaml.load(cfgFile, Loader=yaml.FullLoader)
 
         for tabName, cfg in state.items():

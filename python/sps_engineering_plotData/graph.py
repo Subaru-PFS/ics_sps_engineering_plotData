@@ -27,7 +27,7 @@ def getTimeZone():
 
     import dns.resolver
     try:
-        ans = dns.resolver.query('pfs-site.', 'TXT')
+        ans = dns.resolver.resolve('pfs-site.', 'TXT')
         site = ans[0].strings[0].decode('latin-1')
         timezone = 'US/Hawaii' if site == 'S' else defaultTimeZone
     except dns.resolver.NXDOMAIN:
