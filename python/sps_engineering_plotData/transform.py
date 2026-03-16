@@ -1,35 +1,62 @@
 import numpy as np
 from matplotlib.dates import num2date
 
+N_POINTS = 2000
+
 
 def indFinder(array, elem):
     ind = np.searchsorted(array, elem) if elem < array[-1] else len(array) - 1
     return ind
 
 
-def computeScale(t, data):
-    xdata, ydata = data
-    table_x = np.nan * np.ones(3 * t.shape[0])
-    table_y = np.nan * np.ones(3 * t.shape[0])
-    for i in range(t.shape[0] - 1):
-        m, n = np.searchsorted(xdata, t[i]), np.searchsorted(xdata, t[i + 1])
-        if (n - m) > 0:
-            inter = np.argsort(ydata[m:n])
-            res = np.sort(m + np.array([inter[0], inter[len(inter) // 2], inter[-1]]))
+def lttb(xdata, ydata, tmin, tmax, n_out=N_POINTS):
+    """Largest Triangle Three Buckets downsampling.
 
-            table_x[3 * i: 3 * i + 3] = xdata[res]
-            table_y[3 * i: 3 * i + 3] = ydata[res]
+    Clips to the visible range [tmin, tmax] first (so zooming reveals more
+    detail from the raw data), then downsamples to n_out points. One point
+    of margin is kept on each side for clean line rendering at the edges.
+    """
+    # clip to visible range with one point of margin on each side
+    i0 = max(np.searchsorted(xdata, tmin) - 1, 0)
+    i1 = min(np.searchsorted(xdata, tmax) + 1, len(xdata))
+    xdata, ydata = xdata[i0:i1], ydata[i0:i1]
 
-    min, max = np.searchsorted(xdata, t[0]) - 1, np.searchsorted(xdata, t[-1]) + 1
+    n_in = len(xdata)
+    if n_in <= n_out:
+        return xdata, ydata
 
-    if min > 0:
-        table_x = np.insert(table_x, 0, xdata[min])
-        table_y = np.insert(table_y, 0, ydata[min])
-    if max < len(xdata):
-        table_x = np.append(table_x, xdata[max])
-        table_y = np.append(table_y, ydata[max])
+    # always keep first and last
+    selected = np.empty(n_out, dtype=np.intp)
+    selected[0] = 0
+    selected[-1] = n_in - 1
 
-    return table_x[~np.isnan(table_x)], table_y[~np.isnan(table_y)]
+    bucket_size = (n_in - 2) / (n_out - 2)
+    a = 0
+
+    for i in range(n_out - 2):
+        b_start = int((i + 1) * bucket_size) + 1
+        b_end = min(int((i + 2) * bucket_size) + 1, n_in - 1)
+
+        # centroid of the next bucket — used as the fixed far point
+        c_start = b_end
+        c_end = min(int((i + 3) * bucket_size) + 1, n_in - 1)
+        avg_x = xdata[c_start:c_end].mean() if c_start < c_end else xdata[-1]
+        avg_y = ydata[c_start:c_end].mean() if c_start < c_end else ydata[-1]
+
+        ax, ay = xdata[a], ydata[a]
+        bx = xdata[b_start:b_end]
+        by = ydata[b_start:b_end]
+
+        if len(bx) == 0:
+            selected[i + 1] = a
+            continue
+
+        # pick the point that forms the largest triangle (skip the /2, irrelevant for argmax)
+        areas = np.abs((ax - avg_x) * (by - ay) - (bx - ax) * (avg_y - ay))
+        selected[i + 1] = b_start + np.argmax(areas)
+        a = selected[i + 1]
+
+    return xdata[selected], ydata[selected]
 
 
 def make_format(ax2, ax1):

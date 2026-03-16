@@ -63,7 +63,7 @@ class Curve(object):
     def getData(self, doRaise=False):
 
         try:
-            dataset = self.db.dataBetweenId(self.tablename, self.key, self.idstart, maxId=self.idend)
+            dataset = self.db.dataBetweenId(self.tablename, self.key, self.idstart, endId=self.idend)
             values = dataset[self.key].values
             dates = dataset['tai'].values
             mask = self.checkValues(values)
@@ -107,7 +107,7 @@ class Curve(object):
         try:
             [curveRow] = [curveRow for curveRow in self.plotWindow.customize.rowList if curveRow.curve == self]
             curveRow.label.setText(self.label)
-        except ValueError:
+        except (ValueError, RuntimeError):
             pass
 
     def removeLine(self):
@@ -133,7 +133,7 @@ class Curve(object):
             raise ValueError(f'{self.tablename} does not contain any data on {self.dateplot.datetime}')
 
         if not self.realtime:
-            self.idend, __ = self.db.fetchone(self.db.rangeMax(end=str(self.dateplot.dateEnd)))
+            self.idend = self.db.getEndId(end=str(self.dateplot.dateEnd))
         else:
             self.idend = False
 

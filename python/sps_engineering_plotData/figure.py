@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.dates import DateFormatter
 from matplotlib.figure import Figure
-from sps_engineering_plotData.transform import computeScale
+from sps_engineering_plotData.transform import lttb, N_POINTS
 
 
 class PFigure(Figure):
@@ -60,16 +59,15 @@ class PFigure(Figure):
         dateAxes.xaxis.set_major_formatter(DateFormatter(format_date))
         plt.setp(dateAxes.xaxis.get_majorticklabels(), rotation=20, horizontalalignment='center')
 
-    def setLineData(self, maxPt=800):
+    def setLineData(self, maxPt=N_POINTS):
         if not self.graph.allAxes.keys():
             return
 
         tmin, tmax = self.graph.allAxes[0].get_xlim()
-        delta = tmax - tmin
-
-        step = delta / maxPt
-        time = np.arange(tmin, tmax + step, step)
 
         for curve in self.graph.curvesOnAxes:
-            data = computeScale(time, curve.get_data()) if self.graph.smartScale.isChecked() else curve.get_data()
+            if self.graph.smartScale.isChecked():
+                data = lttb(*curve.get_data(), tmin=tmin, tmax=tmax, n_out=maxPt)
+            else:
+                data = curve.get_data()
             curve.line.set_data(data)

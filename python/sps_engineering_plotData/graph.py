@@ -226,7 +226,7 @@ class Graph(FigureCanvas):
             dmin -= (f1 * delta)
             dmax += (f2 * delta)
         else:
-
+            dmin = max(dmin, 1e-10)  # log10 requires strictly positive values
             dmin = 1.0 * 10 ** (np.floor(np.log10(dmin)))
             dmax = 1.0 * 10 ** (np.ceil(np.log10(dmax)))
 

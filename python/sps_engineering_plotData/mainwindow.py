@@ -3,17 +3,20 @@
 
 
 import importlib
+import logging
 import os
 import tempfile
 from functools import partial
+
+logger = logging.getLogger(__name__)
 
 STATE_SAVE_PATH = '/software/ait/backup/plotdata.save'
 
 import sps_engineering_Lib_dataQuery.confighandler as confighandler
 import sps_engineering_plotData as plotData
 import yaml
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QMainWindow, QAction, QMessageBox, QFileDialog
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QMessageBox, QFileDialog
 from sps_engineering_plotData.archiver import ArchiverHandler
 from sps_engineering_plotData.tabwidget import PTabWidget
 from sps_engineering_plotData.widgets import PIcon
@@ -26,6 +29,7 @@ class MainWindow(QMainWindow):
 
         self.imgPath = os.path.abspath(os.path.join(os.path.dirname(plotData.__file__), '../..', 'img'))
 
+        self._loading = False
         self.cuArms = self.getCuArms()
         self.getIcons()
         self.getWidgets()
@@ -42,14 +46,14 @@ class MainWindow(QMainWindow):
             self.showError(str(e))
 
         if os.path.isfile(STATE_SAVE_PATH) and QMessageBox.question(self, 'Message',
-                                                                         'Do you want to reload '
-                                                                         'previous configuration ?',
-                                                                         QMessageBox.Yes | QMessageBox.No,
-                                                                         QMessageBox.No) == QMessageBox.Yes:
+                                                                    'Do you want to reload '
+                                                                    'previous configuration ?',
+                                                                    QMessageBox.Yes | QMessageBox.No,
+                                                                    QMessageBox.No) == QMessageBox.Yes:
             self.loadLastState()
 
         self.saveStateClock = QTimer(self)
-        self.saveStateClock.setInterval(1000*300)
+        self.saveStateClock.setInterval(1000 * 300)
         self.saveStateClock.timeout.connect(self.saveCurrentState)
         self.saveStateClock.start()
 
@@ -120,11 +124,14 @@ class MainWindow(QMainWindow):
         try:
             title, __ = os.path.splitext(os.path.basename(filepath))
             self.tabWidget.addNameTab(title)
+            self.setLoading(f'Loading {title}...')
             failed = self.loadLayoutInTab(self.tabWidget.currentWidget(), layout)
 
         except Exception as e:
             self.tabWidget.removeTab(self.tabWidget.currentIndex())
             self.showError(f'{filepath} is badly formatted : \n {str(e)}')
+        finally:
+            self.clearLoading()
 
         if failed:
             self.showError('\r\n'.join(failed))
@@ -150,15 +157,23 @@ class MainWindow(QMainWindow):
         plotWindow = tab.plotWindow
         plotWindow.addAxes(layout.keys())
 
-        for axeId, axeProperty in layout.items():
+        allCurves = [(axeId, axeProperty, cp)
+                     for axeId, axeProperty in layout.items()
+                     for cp in axeProperty['curves']]
+        total = len(allCurves)
+
+        for n, (axeId, axeProperty, curveProperty) in enumerate(allCurves, 1):
+            self.setLoading(f'Loading curve {n}/{total}: {curveProperty["fullLabel"]}')
             id = int(axeId[-1]) - 1
             axes = plotWindow.allAxes[id]
-            for curveProperty in axeProperty['curves']:
-                try:
-                    plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
-                except Exception as e:
-                    failed.append(f'{curveProperty["fullLabel"]}:{str(e)}')
+            try:
+                plotWindow.addCurve(confighandler.SavedCurve(**curveProperty), axes=axes)
+            except Exception as e:
+                logger.warning('failed to load curve %s: %s', curveProperty["fullLabel"], e)
+                failed.append(f'{curveProperty["fullLabel"]}:{str(e)}')
 
+        for axeId, axeProperty in layout.items():
+            id = int(axeId[-1]) - 1
             subplot = plotWindow.customize.allAxes[id]
             subplot.overrideAxisAndScale(ylabel=axeProperty['ylabel'], yscale=axeProperty['yscale'])
 
@@ -190,8 +205,10 @@ class MainWindow(QMainWindow):
     def saveCurrentState(self):
         try:
             self._saveCurrentState()
-        except Exception as e:
-            print(e)  # I haven't setups any logging ... meh !
+        except RuntimeError:
+            logger.debug('saveCurrentState: widget deleted mid-save, will retry on next tick')
+        except Exception:
+            logger.exception('saveCurrentState failed')
 
     def _saveCurrentState(self):
         state = dict()
@@ -230,21 +247,36 @@ class MainWindow(QMainWindow):
         with open(STATE_SAVE_PATH, 'r') as cfgFile:
             state = yaml.load(cfgFile, Loader=yaml.FullLoader)
 
-        for tabName, cfg in state.items():
-            self.tabWidget.addNameTab(tabName, doShowCalendar=False)
-            dateStr = cfg.pop('dateStr')
-            realtime = cfg.pop('realtime')
-            nDays = cfg.pop('nDays')
+        try:
+            for tabName, cfg in state.items():
+                self.tabWidget.addNameTab(tabName, doShowCalendar=False)
+                dateStr = cfg.pop('dateStr')
+                realtime = cfg.pop('realtime')
+                nDays = cfg.pop('nDays')
 
-            tab = self.tabWidget.currentWidget()
-            dateplot = tab.plotWindow.dateplot
-            spinBox = dateplot.cal.maximumTimeStretch if dateplot.realtime else dateplot.cal.spinboxDays
+                tab = self.tabWidget.currentWidget()
+                dateplot = tab.plotWindow.dateplot
+                spinBox = dateplot.cal.maximumTimeStretch if dateplot.realtime else dateplot.cal.spinboxDays
 
-            dateplot.dateStr.setText(dateStr)
-            dateplot.cal.checkboxRealTime.setCheckState(2 * int(realtime))
-            spinBox.setValue(nDays)
+                dateplot.dateStr.setText(dateStr)
+                dateplot.cal.checkboxRealTime.setCheckState(2 * int(realtime))
+                spinBox.setValue(nDays)
 
-            self.loadLayoutInTab(tab, cfg)
+                self.loadLayoutInTab(tab, cfg)
+        finally:
+            self.clearLoading()
+
+    def setLoading(self, msg):
+        self.statusBar().showMessage(msg)
+        if not self._loading:
+            self._loading = True
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.processEvents()
+
+    def clearLoading(self):
+        self._loading = False
+        self.statusBar().clearMessage()
+        QApplication.restoreOverrideCursor()
 
     def showError(self, error):
         reply = QMessageBox.critical(self, 'Exception', error, QMessageBox.Ok)
