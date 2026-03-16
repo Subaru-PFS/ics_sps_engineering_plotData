@@ -258,8 +258,8 @@ class MainWindow(QMainWindow):
                 dateplot = tab.plotWindow.dateplot
                 spinBox = dateplot.cal.maximumTimeStretch if dateplot.realtime else dateplot.cal.spinboxDays
 
-                dateplot.dateStr.setText(dateStr)
                 dateplot.cal.checkboxRealTime.setCheckState(2 * int(realtime))
+                dateplot.setDateStr(dateStr)
                 spinBox.setValue(nDays)
 
                 self.loadLayoutInTab(tab, cfg)

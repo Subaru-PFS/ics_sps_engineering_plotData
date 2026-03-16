@@ -1,7 +1,9 @@
 import datetime as dt
 from functools import partial
 
-from PyQt5.QtCore import QDate, Qt
+from PyQt5.QtCore import QDate, Qt, QTimer
+
+DATE_INPUT_DEBOUNCE_MS = 2000
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, \
     QPushButton, QGroupBox, QCheckBox, QGridLayout, QLineEdit, QCalendarWidget, QLabel, QSpinBox, QDialog
 from sps_engineering_Lib_dataQuery.confighandler import loadConf
@@ -49,7 +51,7 @@ class Calendar(QDialog):
         self.spinboxDays.setRange(1, 999)
         self.spinboxDays.setValue(1)
 
-        self.confAuto.setChecked(0)
+        self.confAuto.setChecked(True)
 
         self.confAuto.stateChanged.connect(self.dateplot.loadConf)
         self.checkboxRealTime.stateChanged.connect(self.realtime)
@@ -109,7 +111,11 @@ class DatePlot(QWidget):
         QWidget.__init__(self)
         self.plotWindow = plotWindow
         self.dateStr = QLineEdit()
-        self.dateStr.textChanged.connect(self.loadConf)
+        self._debounce = QTimer(self)
+        self._debounce.setSingleShot(True)
+        self._debounce.setInterval(DATE_INPUT_DEBOUNCE_MS)
+        self._debounce.timeout.connect(self.loadConf)
+        self.dateStr.textChanged.connect(self._debounce.start)
         self.cal = Calendar(self)
         self.cal.showDate()
         self.updateMinDate()
@@ -147,6 +153,12 @@ class DatePlot(QWidget):
     @property
     def dateEnd(self):
         return self.datetime + dt.timedelta(days=self.cal.spinboxDays.value())
+
+    def setDateStr(self, datestr):
+        """Set the date programmatically, bypassing the debounce."""
+        self._debounce.stop()
+        self.dateStr.setText(datestr)
+        self.loadConf()
 
     def updateDateStr(self, datetime):
         self.dateStr.setText(datetime.isoformat()[:-3])
